@@ -1,0 +1,67 @@
+@use "@/styles/helpers/index.scss" as *;
+
+.auth {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: 100vh;
+
+  &__form {
+    &-col {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: fluid(80, 24);
+      background: var(--color-back-ground);
+      position: relative;
+      z-index: 2;
+
+      @include middle {
+        background: transparent;
+      }
+
+      @include middle {
+        grid-column: 1;
+        grid-row: 1;
+        background: transparent;
+      }
+    }
+  }
+
+  &__deco {
+    &-col {
+      position: relative;
+      overflow: hidden;
+      background: var(--color-surface-1);
+      z-index: 1;
+
+      &::before {
+        content: "";
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 80px;
+        background: linear-gradient(
+          to right,
+          var(--color-back-ground),
+          transparent
+        );
+        z-index: 10;
+        pointer-events: none;
+      }
+
+      @include middle {
+        grid-column: 1;
+        grid-row: 1;
+        border-left: none;
+
+        &::before {
+          display: none;
+        }
+      }
+    }
+  }
+
+  @include middle {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+  }
+}

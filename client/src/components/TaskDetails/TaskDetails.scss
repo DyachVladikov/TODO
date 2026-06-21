@@ -1,0 +1,498 @@
+.task-details {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--color-surface-1);
+  border-left: 1px solid var(--color-border-subtle);
+  color: var(--color-text-primary);
+
+  &--empty {
+    justify-content: center;
+    align-items: center;
+    background: var(--color-background); /* Чуть темнее */
+  }
+
+  &__empty-state {
+    color: var(--color-text-muted);
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  /* ХЕДЕР */
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--color-border-subtle);
+    flex-shrink: 0;
+  }
+
+  &__divider {
+    width: 1px;
+    height: 20px;
+    background: var(--color-border-subtle);
+    margin: 0 4px;
+  }
+
+  /* КНОПКИ В ХЕДЕРЕ */
+  &__btn-icon {
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s;
+
+    &:hover {
+      background: var(--color-surface-3);
+      color: var(--color-text-primary);
+    }
+
+    &--delete:hover {
+      color: var(--color-status-error);
+      background: rgba(239, 68, 68, 0.1);
+    }
+  }
+
+  &__btn-text {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+
+    &--save {
+      background: var(--color-accent-primary);
+      color: white;
+      &:hover {
+        background: var(--color-accent-hover);
+      }
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+
+    &--reset {
+      background: transparent;
+      color: var(--color-text-secondary);
+      &:hover {
+        background: var(--color-surface-3);
+        color: var(--color-text-primary);
+      }
+    }
+  }
+
+  /* КОНТЕНТ */
+  &__content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px; /* Большой отступ между секциями */
+
+    /* Скроллбар */
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: var(--color-surface-3);
+      border-radius: 3px;
+    }
+  }
+
+  /* СЕКЦИИ */
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    &-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--color-text-muted);
+
+      h3 {
+        font-size: 14px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 0;
+      }
+    }
+  }
+
+  /* ИНЛАЙН-ЗАГОЛОВОК */
+  &__title-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--color-text-primary);
+    font-size: 24px;
+    font-weight: 700;
+    resize: none;
+    line-height: 1.3;
+    padding: 4px 0;
+    border-radius: 4px;
+    transition: background 0.2s;
+
+    &:focus {
+      background: var(--color-surface-2);
+      padding-left: 8px;
+      margin-left: -8px;
+    }
+
+    &::placeholder {
+      color: var(--color-text-muted);
+      opacity: 0.5;
+    }
+  }
+
+  /* МЕТАДАННЫЕ (СЕТКА) */
+  .task-meta-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    background: var(--color-surface-2);
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid var(--color-border-subtle);
+  }
+
+  .task-meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: transparent;
+    border: none;
+    padding: 8px;
+    border-radius: 8px;
+    text-align: left;
+    align-items: flex-start;
+
+    &--clickable {
+      cursor: pointer;
+      transition: background 0.2s;
+      &:hover {
+        background: var(--color-surface-3);
+      }
+    }
+  }
+
+  .task-meta-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .task-meta-value {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+
+    svg {
+      color: var(--color-text-muted);
+      flex-shrink: 0;
+    }
+    .icon-project {
+      color: #8b5cf6;
+    } /* Фиолетовый по умолчанию */
+  }
+
+  .task-status-badge {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 12px;
+    &.active {
+      background: rgba(59, 130, 246, 0.15);
+      color: #3b82f6;
+    }
+    &.completed {
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+    }
+  }
+
+  /* Кастомный инпут даты внутри метаданных */
+  .task-meta-date-input {
+    background: transparent;
+    border: none;
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    padding: 0;
+    outline: none;
+    cursor: pointer;
+    &::-webkit-calendar-picker-indicator {
+      display: none;
+    } /* Скрываем дефолтную иконку */
+  }
+
+  /* ТЕГИ */
+  .task-tags-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .task-tag {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--color-surface-3);
+    color: var(--color-text-secondary);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 6px;
+
+    button {
+      background: transparent;
+      border: none;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      padding: 0;
+      display: flex;
+      &:hover {
+        color: var(--color-status-error);
+      }
+    }
+  }
+
+  .task-tag-add {
+    background: transparent;
+    border: 1px dashed var(--color-border-strong);
+    color: var(--color-text-muted);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s;
+
+    &:hover {
+      border-color: var(--color-accent-primary);
+      color: var(--color-accent-primary);
+      background: rgba(59, 130, 246, 0.05);
+    }
+  }
+
+  /* ОПИСАНИЕ (textarea) */
+  &__notes-input {
+    width: 100%;
+    min-height: 120px;
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: 8px;
+    padding: 12px;
+    color: var(--color-text-primary);
+    font-size: 14px;
+    line-height: 1.5;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+
+    &:focus {
+      border-color: var(--color-accent-primary);
+      background: var(--color-surface-1);
+    }
+
+    &::placeholder {
+      color: var(--color-text-muted);
+    }
+  }
+
+  /* ЧЕК-ЛИСТ */
+  &__section--checklist {
+    background: var(--color-surface-2);
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid var(--color-border-subtle);
+  }
+
+  .task-checklist-count {
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    background: var(--color-surface-3);
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+
+  .task-checklist-items {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+  }
+
+  .task-checklist-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    transition: background 0.2s;
+    group: true; /* Для ховера на иконку удаления */
+
+    &:hover {
+      background: var(--color-surface-3);
+      .item-delete {
+        opacity: 1;
+      }
+    }
+
+    &.completed {
+      .item-title {
+        text-decoration: line-through;
+        color: var(--color-text-muted);
+      }
+    }
+
+    .item-checkbox {
+      background: transparent;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      color: var(--color-text-muted);
+      display: flex;
+      &:hover {
+        color: var(--color-accent-primary);
+      }
+      .icon-checked {
+        color: var(--color-accent-primary);
+      }
+    }
+
+    .item-title {
+      flex: 1;
+      font-size: 14px;
+      color: var(--color-text-primary);
+    }
+
+    .item-delete {
+      background: transparent;
+      border: none;
+      color: var(--color-text-muted);
+      cursor: pointer;
+      padding: 2px;
+      opacity: 0; /* Скрыта по умолчанию */
+      transition: opacity 0.2s;
+      display: flex;
+      &:hover {
+        color: var(--color-status-error);
+      }
+    }
+  }
+
+  .task-checklist-add {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 12px;
+    color: var(--color-text-muted);
+    border-top: 1px solid var(--color-border-subtle);
+    padding-top: 12px;
+
+    input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--color-text-primary);
+      font-size: 14px;
+      &::placeholder {
+        color: var(--color-text-muted);
+      }
+    }
+
+    button {
+      background: var(--color-surface-3);
+      border: none;
+      color: var(--color-text-primary);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      &:hover {
+        background: var(--color-border-subtle);
+      }
+    }
+  }
+
+  /* ФУТЕР */
+  &__footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--color-border-subtle);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+}
+.task-date {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+.task-details__title-display {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+  line-height: 1.3;
+  padding: 4px 0;
+}
+
+.task-details__empty-text {
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-style: italic;
+}
+
+.task-details__notes-display {
+  color: var(--color-text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.task-meta-select {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  padding: 0;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+}

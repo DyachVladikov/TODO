@@ -1,0 +1,130 @@
+.page-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: none;
+  display: flex;
+
+  &__panel {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    width: 55%;
+
+    &--left {
+      left: 0;
+      background: linear-gradient(
+        135deg,
+        var(--color-accent-primary) 0%,
+        #5b21b6 60%,
+        #3b0764 100%
+      );
+      transform: translateX(-102%);
+      clip-path: polygon(0 0, 95% 0, 100% 100%, 0 100%);
+    }
+
+    &--right {
+      right: 0;
+      background: linear-gradient(
+        -135deg,
+        var(--color-accent-primary) 0%,
+        #5b21b6 60%,
+        #3b0764 100%
+      );
+      transform: translateX(102%);
+      clip-path: polygon(5% 0, 100% 0, 100% 100%, 0 100%);
+    }
+  }
+
+  &__logo {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1001;
+    opacity: 0;
+    pointer-events: none;
+
+    span {
+      font-size: clamp(32px, 5vw, 64px);
+      font-weight: 900;
+      color: var(--color-white);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      filter: drop-shadow(0 0 30px rgba(124, 58, 237, 0.8));
+    }
+  }
+
+  // ─── Фаза enter — панели влетают с боков ─────────────────
+
+  &--enter &__panel {
+    &--left  { animation: panel-in-left  0.65s cubic-bezier(0.76, 0, 0.24, 1) forwards; }
+    &--right { animation: panel-in-right 0.65s cubic-bezier(0.76, 0, 0.24, 1) forwards; }
+  }
+
+  &--enter &__logo {
+    animation: logo-in 0.3s ease 0.5s forwards;
+  }
+
+  // ─── Фаза hold — всё на месте ────────────────────────────
+
+  &--hold &__panel {
+    &--left  { transform: translateX(0); }
+    &--right { transform: translateX(0); }
+  }
+
+  &--hold &__logo {
+    opacity: 1;
+  }
+
+  // ─── Фаза leave — панели уходят вверх и вниз ─────────────
+
+  &--leave &__panel {
+    &--left  {
+      transform: translateX(0);
+      animation: panel-out-up   0.6s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+    }
+    &--right {
+      transform: translateX(0);
+      animation: panel-out-down 0.6s cubic-bezier(0.76, 0, 0.24, 1) 0.05s forwards;
+    }
+  }
+
+  &--leave &__logo {
+    opacity: 1;
+    animation: logo-out 0.25s ease forwards;
+  }
+}
+
+// ─── Keyframes ───────────────────────────────────────────────
+
+@keyframes panel-in-left {
+  from { transform: translateX(-102%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes panel-in-right {
+  from { transform: translateX(102%); }
+  to   { transform: translateX(0); }
+}
+
+@keyframes panel-out-up {
+  from { transform: translateX(0) translateY(0); }
+  to   { transform: translateX(0) translateY(-102%); }
+}
+
+@keyframes panel-out-down {
+  from { transform: translateX(0) translateY(0); }
+  to   { transform: translateX(0) translateY(102%); }
+}
+
+@keyframes logo-in {
+  from { opacity: 0; transform: scale(1.1); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes logo-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}

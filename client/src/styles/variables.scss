@@ -1,0 +1,93 @@
+@use "./helpers/index.scss" as *;
+
+/*
+
+ExtraBlack – 950
+
+Black – 900
+
+ExtraBold – 800
+
+Bold – 700
+
+SemiBold – 600
+
+Medium – 500
+
+Normal – 400
+
+SemiLight – 350
+
+Light – 300
+
+ExtraLight – 200
+
+Thin – 100 */
+
+:root {
+  --color-white: #fff;
+  --color-black: #000;
+  --color-white-transparent-10: rgba(255, 255, 255, 0.2);
+
+  --color-back-ground: #191820;
+  --color-surface-1: #22212b;
+  --color-surface-2: #2c2b36;
+  --color-surface-3: #373545;
+
+  /* Линии и границы (Borders) */
+  --color-border-subtle: #312f3d;
+  --color-border-strong: #454256;
+
+  /* Текст (Typography) */
+  --color-text-primary: #f3f2f7;
+  --color-text-secondary: #a19ead;
+  --color-text-muted: #6b687a;
+
+  /* Акценты (Accents) */
+  --color-accent-primary: #7c3aed;
+  --color-accent-hover: #8b5cf6;
+  --color-accent-secondary: #2dd4bf;
+
+  /* Статусы (Status) */
+  --color-status-success: #10b981;
+  --color-status-warning: #f59e0b;
+  --color-status-error: #ef4444;
+  --color-status-info: #3b82f6;
+
+  --border: 1px solid var(--color-border-subtle);
+
+  --border-radius-xl: 100px;
+  --border-radius-l: 75px;
+  --border-radius-m: 28px;
+  --border-radius-s: 12px;
+  --border-radius-xs: 10px;
+  --border-radius-xxs: 8px;
+  --border-radius-xxxs: 4px;
+
+  --border-width-l: 4px;
+  --border-width-m: 2px;
+  --border-width-s: 1px;
+
+  --font-family-main: "Urbanist", sans-serif;
+
+  --container-width: #{fluid-to-laptop(
+      $container-desktop-width,
+      $container-laptop-width
+    )};
+
+  --container-padding-x: 162px;
+
+  --widthElFrom: #{fluid-from-desktop(311, 272)};
+
+  @include desktop {
+    --container-padding-x: 162px;
+  }
+  @include laptop-large {
+    --container-padding-x: #{fluid(80, 16)};
+  }
+
+  --section-padding-y: #{fluid-from-desktop-to-mobile(162, 16)};
+
+  --transition-duration: 0.2s;
+  --transition-duration-longer: 0.4s;
+}

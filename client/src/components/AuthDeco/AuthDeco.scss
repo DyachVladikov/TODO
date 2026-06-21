@@ -1,0 +1,721 @@
+@use "@/styles/helpers/index.scss" as *;
+@use "@/styles/globals.scss" as *;
+
+.auth-deco {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+
+  &__orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(110px);
+    opacity: 0.22;
+    animation: orb-drift 12s ease-in-out infinite alternate;
+
+    &--1 {
+      width: 70%;
+      height: 70%;
+      background: var(--color-accent-primary);
+      top: -20%;
+      right: -20%;
+    }
+    &--2 {
+      width: 55%;
+      height: 55%;
+      background: var(--color-accent-secondary);
+      bottom: -15%;
+      left: -15%;
+      animation-delay: -5s;
+    }
+    &--3 {
+      width: 40%;
+      height: 40%;
+      background: var(--color-status-info);
+      top: 35%;
+      left: 15%;
+      animation-delay: -8s;
+    }
+  }
+
+  // ─── Сцена ───────────────────────────────────────────────
+
+  &__scene {
+    position: relative;
+    z-index: 2;
+    // Ширина и высота сцены через vw/vh — сохраняет пропорции
+    width: clamp(220px, 32vw, 460px);
+    // Высота пропорциональна ширине через aspect-ratio — НЕ растягивается
+    aspect-ratio: 0.62 / 1;
+    // Но не выше колонки
+    max-height: calc(100vh - 80px);
+    animation: scene-float 6s ease-in-out infinite;
+  }
+
+  // ─── Карточки ────────────────────────────────────────────
+
+  &__card {
+    background: rgba(34, 33, 43, 0.78);
+    backdrop-filter: blur(18px);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--border-radius-s);
+    padding: clamp(12px, 1.5vw, 22px);
+
+    &--main {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: clamp(8px, 1.2vh, 16px);
+      overflow: hidden;
+      box-sizing: border-box;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+
+      @include middle {
+        opacity: 0 !important;
+        pointer-events: none;
+      }
+    }
+
+    &--extra {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, -50%) scale(0.75);
+    }
+
+    // Размеры доп. карточек — пропорционально ширине сцены
+    &--chart {
+      width: clamp(100px, 12vw, 170px);
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    &--stat {
+      width: clamp(90px, 11vw, 150px);
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    &--metrics {
+      width: clamp(120px, 14vw, 190px);
+    }
+    &--loader {
+      width: clamp(70px, 8vw, 110px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    &--linechart {
+      width: clamp(110px, 13vw, 180px);
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    &--tags {
+      width: clamp(110px, 13vw, 180px);
+    }
+    &--heatmap {
+      width: clamp(95px, 11vw, 155px);
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    &--notification {
+      width: clamp(110px, 13vw, 180px);
+    }
+  }
+
+
+  // ─── Шапка ───────────────────────────────────────────────
+
+  &__card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  &__card-title {
+    font-size: clamp(11px, 1vw, 14px);
+    font-weight: 700;
+    color: var(--color-text-secondary);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-left: auto;
+  }
+
+  &__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+
+    &--accent {
+      background: var(--color-accent-primary);
+      box-shadow: 0 0 8px var(--color-accent-primary);
+      animation: pulse-dot 2.5s ease-in-out infinite;
+    }
+  }
+
+  // ─── Строки — flex: 1 чтобы заполнять высоту равномерно ─
+
+  &__rows {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(4px, 0.6vh, 8px);
+    min-height: 0; // важно для корректного flex shrink
+  }
+
+  &__row {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 clamp(8px, 1vw, 13px);
+    background: var(--color-surface-2);
+    border-radius: var(--border-radius-xxxs);
+    border: 1px solid var(--color-border-subtle);
+    min-height: 0;
+    animation: row-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(0.5s + var(--i) * 0.07s);
+  }
+
+  &__row-bars {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  &__check-box {
+    flex-shrink: 0;
+    width: clamp(12px, 1vw, 16px);
+    height: clamp(12px, 1vw, 16px);
+    border-radius: 3px;
+    border: 1.5px solid var(--color-border-strong);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &--done {
+      background: var(--color-accent-primary);
+      border-color: var(--color-accent-primary);
+      color: #fff;
+      svg {
+        width: 8px;
+        height: 8px;
+      }
+    }
+  }
+
+  &__badge {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    flex-shrink: 0;
+
+    &--0 {
+      background: var(--color-accent-primary);
+    }
+    &--1 {
+      background: var(--color-accent-secondary);
+    }
+    &--2 {
+      background: var(--color-status-warning);
+    }
+  }
+
+  &__divider {
+    flex-shrink: 0;
+    height: 1px;
+    background: var(--color-border-subtle);
+  }
+
+  // ─── Плашки ──────────────────────────────────────────────
+
+  &__bar {
+    height: 6px;
+    background: var(--color-surface-3);
+    border-radius: 99px;
+    width: 100%;
+    flex-shrink: 0;
+
+    &--short {
+      width: 55%;
+    }
+    &--xs {
+      height: 4px;
+      opacity: 0.6;
+    }
+  }
+
+  // ─── Прогресс ────────────────────────────────────────────
+
+  &__progress {
+    &-section {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    &-track {
+      flex: 1;
+      height: 4px;
+      background: var(--color-surface-3);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    &-fill {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(
+        90deg,
+        var(--color-accent-primary),
+        var(--color-accent-secondary)
+      );
+      border-radius: 99px;
+      animation: progress-fill 1.4s cubic-bezier(0.22, 1, 0.36, 1) 1.2s both;
+    }
+  }
+
+  // ─── Нижний ряд чипов ────────────────────────────────────
+
+  &__bottom-row {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  &__bottom-chip {
+    height: clamp(16px, 2vh, 24px);
+    flex: 1;
+    border-radius: var(--border-radius-xxxs);
+    background: var(--color-surface-3);
+
+    &:first-child {
+      background: rgba(124, 58, 237, 0.2);
+      border: 1px solid rgba(124, 58, 237, 0.3);
+    }
+    &:nth-child(2) {
+      background: rgba(45, 212, 191, 0.15);
+      border: 1px solid rgba(45, 212, 191, 0.3);
+    }
+  }
+
+  // ─── Бар-чарт ────────────────────────────────────────────
+
+  &__chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: clamp(32px, 4.5vh, 55px);
+  }
+
+  &__chart-bar {
+    flex: 1;
+    height: var(--h);
+    border-radius: 2px 2px 0 0;
+    background: linear-gradient(
+      180deg,
+      var(--color-accent-primary),
+      rgba(124, 58, 237, 0.2)
+    );
+    transform-origin: bottom;
+    animation: chart-pulse 3s ease-in-out infinite;
+    animation-delay: calc(var(--i) * 0.35s);
+  }
+
+  // ─── Стат-кружки ─────────────────────────────────────────
+
+  &__stat-circles {
+    display: flex;
+    align-items: flex-end;
+    gap: 5px;
+    height: clamp(26px, 3.5vh, 46px);
+  }
+
+  &__stat-circle {
+    border-radius: 50%;
+    &--0 {
+      width: clamp(26px, 3.2vw, 42px);
+      height: clamp(26px, 3.2vw, 42px);
+      background: rgba(124, 58, 237, 0.3);
+      border: 1.5px solid var(--color-accent-primary);
+    }
+    &--1 {
+      width: clamp(18px, 2.2vw, 30px);
+      height: clamp(18px, 2.2vw, 30px);
+      background: rgba(45, 212, 191, 0.25);
+      border: 1.5px solid var(--color-accent-secondary);
+    }
+    &--2 {
+      width: clamp(12px, 1.5vw, 20px);
+      height: clamp(12px, 1.5vw, 20px);
+      background: rgba(59, 130, 246, 0.25);
+      border: 1.5px solid var(--color-status-info);
+    }
+  }
+
+  // ─── Метрики ─────────────────────────────────────────────
+
+  &__metrics {
+    display: flex;
+    gap: 5px;
+  }
+
+  &__metric {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 7px 3px;
+    background: var(--color-surface-2);
+    border-radius: var(--border-radius-xxxs);
+
+    &-val {
+      font-size: clamp(12px, 1.4vw, 18px);
+      font-weight: 700;
+      color: var(--color-text-primary);
+    }
+    &-lbl {
+      font-size: clamp(8px, 0.65vw, 10px);
+      color: var(--color-text-muted);
+      text-align: center;
+    }
+  }
+
+  // ─── Лоадер ──────────────────────────────────────────────
+
+  &__loader-ring {
+    width: clamp(22px, 2.8vw, 38px);
+    height: clamp(22px, 2.8vw, 38px);
+    border-radius: 50%;
+    border: 2.5px solid var(--color-surface-3);
+    border-top-color: var(--color-accent-primary);
+    animation: spin 1s linear infinite;
+  }
+
+  // ─── Линейный график ─────────────────────────────────────
+
+  &__line-svg {
+    width: 100%;
+    height: clamp(26px, 3.5vh, 48px);
+    overflow: visible;
+  }
+
+  &__line-track {
+    fill: none;
+    stroke: var(--color-accent-primary);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 300;
+    stroke-dashoffset: 300;
+    animation: line-draw 1.4s ease-out 0.3s forwards;
+  }
+
+  &__line-fill {
+    fill: rgba(124, 58, 237, 0.15);
+    stroke: none;
+    opacity: 0;
+    animation: line-fade 0.8s ease 1.2s forwards;
+  }
+
+  // ─── Теги ────────────────────────────────────────────────
+
+  &__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  &__tag {
+    font-size: clamp(9px, 0.7vw, 11px);
+    padding: 3px 8px;
+    border-radius: var(--border-radius-xl);
+    font-weight: 600;
+
+    &--0 {
+      background: rgba(124, 58, 237, 0.2);
+      color: var(--color-accent-hover);
+      border: 1px solid rgba(124, 58, 237, 0.3);
+    }
+    &--1 {
+      background: rgba(45, 212, 191, 0.15);
+      color: var(--color-accent-secondary);
+      border: 1px solid rgba(45, 212, 191, 0.3);
+    }
+    &--2 {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--color-status-error);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    &--3 {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--color-status-warning);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+  }
+
+  // ─── Хитмап ──────────────────────────────────────────────
+
+  &__heatmap {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+  }
+
+  &__heatmap-cell {
+    aspect-ratio: 1;
+    border-radius: 2px;
+    opacity: calc(0.2 + var(--level) * 0.25);
+    &:nth-child(odd) {
+      background: var(--color-accent-primary);
+    }
+    &:nth-child(even) {
+      background: var(--color-accent-secondary);
+    }
+  }
+
+  // ─── Уведомление ─────────────────────────────────────────
+
+  &__notification {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+
+  // ─── Частицы ─────────────────────────────────────────────
+
+  &__particle {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+
+    &--0 {
+      width: 6px;
+      height: 6px;
+      background: var(--color-accent-primary);
+      top: 8%;
+      left: 5%;
+      opacity: 0.5;
+      animation: particle-float 5s ease-in-out infinite;
+    }
+    &--1 {
+      width: 4px;
+      height: 4px;
+      background: var(--color-accent-secondary);
+      top: 80%;
+      right: 7%;
+      opacity: 0.45;
+      animation: particle-float 7s ease-in-out infinite reverse;
+    }
+    &--2 {
+      width: 5px;
+      height: 5px;
+      background: var(--color-status-info);
+      bottom: 12%;
+      left: 12%;
+      opacity: 0.4;
+      animation: particle-float 6s ease-in-out 1s infinite;
+    }
+    &--3 {
+      width: 3px;
+      height: 3px;
+      background: var(--color-status-warning);
+      top: 20%;
+      right: 5%;
+      opacity: 0.5;
+      animation: particle-float 4s ease-in-out 0.5s infinite reverse;
+    }
+    &--4 {
+      width: 5px;
+      height: 5px;
+      background: var(--color-accent-primary);
+      bottom: 28%;
+      right: 16%;
+      opacity: 0.35;
+      animation: particle-float 8s ease-in-out 2s infinite;
+    }
+    &--5 {
+      width: 4px;
+      height: 4px;
+      background: var(--color-status-error);
+      top: 50%;
+      left: 4%;
+      opacity: 0.38;
+      animation: particle-float 5.5s ease-in-out 1.5s infinite;
+    }
+    &--6 {
+      width: 3px;
+      height: 3px;
+      background: var(--color-accent-secondary);
+      bottom: 45%;
+      right: 4%;
+      opacity: 0.42;
+      animation: particle-float 9s ease-in-out 3s infinite reverse;
+    }
+  }
+}
+
+// ─── Keyframes ───────────────────────────────────────────────────────────────
+
+@keyframes orb-drift {
+  from {
+    transform: translate(0, 0) scale(1);
+  }
+  to {
+    transform: translate(5%, 4%) scale(1.1);
+  }
+}
+
+@keyframes scene-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// Используем CSS-переменные --tx/--ty которые задаются из JS
+@keyframes exp-card {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.75);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty)))
+      scale(1);
+  }
+}
+
+@keyframes col-card {
+  0% {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty)))
+      scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.7);
+  }
+}
+
+@keyframes row-in {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes progress-fill {
+  from {
+    width: 0;
+  }
+  to {
+    width: 65%;
+  }
+}
+
+@keyframes chart-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    box-shadow: 0 0 6px var(--color-accent-primary);
+  }
+  50% {
+    box-shadow: 0 0 16px var(--color-accent-primary);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes line-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes line-fade {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes particle-float {
+  0%,
+  100% {
+    transform: translateY(0) translateX(0);
+  }
+  33% {
+    transform: translateY(-12px) translateX(7px);
+  }
+  66% {
+    transform: translateY(6px) translateX(-8px);
+  }
+}
+
+@keyframes float-a {
+  0%, 100% { translate: 0px 0px; }
+  40%       { translate: 4px -8px; }
+  70%       { translate: -5px 4px; }
+}
+
+@keyframes float-b {
+  0%, 100% { translate: 0px 0px; }
+  35%       { translate: -6px 6px; }
+  65%       { translate: 3px -7px; }
+}
+
+@keyframes float-c {
+  0%, 100% { translate: 0px 0px; }
+  50%       { translate: -4px -6px; }
+}

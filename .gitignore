@@ -1,0 +1,17 @@
+# Игнорируем зависимости ВО ВСЕХ папках
+node_modules/
+
+# Игнорируем ВСЕ файлы с переменными окружения (паролями) ВО ВСЕХ папках
+.env
+.env.local
+.env.development
+.env.production
+
+# Игнорируем собранный фронтенд (если используешь Vite или CRA)
+client/dist/
+client/build/
+
+# Всякий системный мусор
+.DS_Store
+.vscode/
+npm-debug.log

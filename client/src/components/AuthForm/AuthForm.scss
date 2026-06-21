@@ -1,0 +1,106 @@
+@use "@/styles/helpers/index.scss" as *;
+
+.auth-form {
+  width: 100%;
+  max-width: fluid(640, 320);
+  display: flex;
+  flex-direction: column;
+  gap: fluid(32, 20);
+  padding: fluid(48, 24);
+  background: var(--color-surface-1);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--border-radius-m);
+
+  &__title {
+    font-size: fluid(42, 26);
+    font-weight: 700;
+    color: var(--color-text-primary);
+    margin: 0;
+  }
+
+  &__subtitle {
+    color: var(--color-text-secondary);
+    margin: fluid(-20, -12) 0 0;
+    font-size: fluid(17, 14);
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: fluid(20, 12);
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    label {
+      font-size: fluid(15, 12);
+      font-weight: 600;
+      color: var(--color-text-secondary);
+    }
+
+    input {
+      padding: fluid(16, 10) fluid(20, 14);
+      background: var(--color-surface-1);
+      border: var(--border);
+      border-radius: var(--border-radius-xxs);
+      color: var(--color-text-primary);
+      font-size: fluid(17, 14);
+      transition: border-color var(--transition-duration);
+
+      &:focus {
+        border-color: var(--color-accent-primary);
+      }
+
+      &::placeholder {
+        color: var(--color-text-muted);
+      }
+    }
+  }
+
+  &__error {
+    font-size: fluid(14, 12);
+    color: var(--color-status-error);
+    margin: 0;
+  }
+
+  &__submit {
+    margin-top: fluid(12, 6);
+    padding: fluid(17, 11);
+    background: var(--color-accent-primary);
+    color: var(--color-white);
+    border: none;
+    border-radius: var(--border-radius-xxs);
+    font-size: fluid(17, 14);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--transition-duration);
+
+    &:hover {
+      background: var(--color-accent-hover);
+    }
+  }
+
+  &__switch {
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: fluid(15, 13);
+    margin: 0;
+
+    button {
+      background: none;
+      border: none;
+      color: var(--color-accent-hover);
+      cursor: pointer;
+      font-size: fluid(15, 13);
+      font-weight: 600;
+      margin-left: 6px;
+
+      &:hover {
+        color: var(--color-accent-primary);
+      }
+    }
+  }
+}

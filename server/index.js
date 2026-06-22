@@ -5,6 +5,7 @@ import cors from "cors";
 
 import AuthRoutes from "./routes/authRoutes.js";
 import TodoRoutes from "./routes/todosRoutes.js";
+import folderRoutes from "./routes/folders.js";
 
 const app = express();
 dotenv.config();
@@ -28,6 +29,7 @@ async function Start() {
       });
     app.use("/api", AuthRoutes);
     app.use("/api", TodoRoutes);
+    app.use("/api", folderRoutes);
   } catch (error) {
     console.log(error);
   }

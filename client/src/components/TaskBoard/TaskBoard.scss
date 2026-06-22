@@ -1,19 +1,42 @@
+@use "@/styles/helpers/index" as *;
+
 .task-board {
+  width: 100%;
+  max-width: 1100px;
+  justify-self: start;
+  padding: 32px 40px;
+  margin: 0;
   display: flex;
   flex-direction: column;
-  padding: 32px 40px;
-  overflow-y: auto;
-  border-right: 1px solid var(--color-border-subtle);
-  background: var(--color-background); // Самый темный фон для рабочей зоны
+  height: 100vh;
+  overflow: hidden;
+
+  @include mobile {
+    padding: 24px 16px;
+    height: calc(100vh - 70px); // Оставляем место под нижний бар
+  }
 
   &__header {
     display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+
+    @include mobile {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+  }
+
+  &__header-title {
+    display: flex;
     align-items: baseline;
-    gap: 16px;
-    margin-bottom: 24px;
+    gap: 12px;
 
     h2 {
-      font-size: 28px;
+      font-size: 32px;
       font-weight: 700;
       color: var(--color-text-primary);
       margin: 0;
@@ -21,105 +44,234 @@
   }
 
   &__count {
-    font-size: 14px;
     color: var(--color-text-muted);
+    font-size: 14px;
     font-weight: 500;
   }
 
-  &__input-form {
+  &__add-btn {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    background: var(--color-surface-1);
-    border: 1px solid transparent; // Прозрачный бордер, который загорается при фокусе
-    border-radius: 8px;
-    margin-bottom: 32px;
-    transition: all 0.2s ease;
-
-    &:focus-within {
-      border-color: var(--color-accent-primary);
-      background: var(--color-surface-2);
-    }
-  }
-
-  &__input-btn {
-    background: transparent;
+    gap: 8px;
+    background: var(--color-accent-primary);
+    color: #fff;
     border: none;
-    color: var(--color-text-muted);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
     cursor: pointer;
-    transition: color 0.2s;
+    transition: background 0.2s;
 
     &:hover {
-      color: var(--color-accent-primary);
+      background: var(--color-accent-hover);
+    }
+
+    @include mobile {
+      width: 100%;
+      justify-content: center;
     }
   }
 
-  &__input {
+  /* ПАНЕЛЬ ФИЛЬТРАЦИИ */
+  &__filters {
+    display: flex;
+    flex-wrap: wrap; /* Позволяем фильтрам переноситься на мобилках */
+    gap: 12px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--color-border-subtle);
+    align-items: center;
+  }
+
+  &__list {
     flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-right: 8px;
+    padding-bottom: 40px;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: var(--color-surface-3);
+      border-radius: 6px;
+    }
+  }
+
+  &__empty {
+    text-align: center;
+    padding: 40px;
+    color: var(--color-text-muted);
+  }
+}
+
+.filter-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-surface-1);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--color-text-muted);
+  transition: all 0.2s;
+  height: 38px;
+
+  &:focus-within {
+    border-color: var(--color-accent-primary);
+    color: var(--color-accent-primary);
+    background: var(--color-surface-2);
+  }
+
+  &--search {
+    flex: 1;
+    min-width: 150px;
+  }
+
+  &--tag {
+    width: 120px;
+    @include mobile {
+      flex: 1;
+    }
+  }
+
+  input {
     background: transparent;
     border: none;
     outline: none;
     color: var(--color-text-primary);
-    font-size: 15px;
+    font-size: 14px;
+    width: 100%;
 
     &::placeholder {
       color: var(--color-text-muted);
     }
   }
+}
 
-  &__list {
+/* КАСТОМНЫЙ ДРОПДАУН */
+.custom-dropdown {
+  position: relative;
+  min-width: 170px;
+  height: 38px;
+
+  @include mobile {
+    flex: 1; /* На мобилке занимают всё свободное место */
+    min-width: calc(50% - 6px);
+  }
+
+  &__toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    height: 38px; /* Жестко фиксируем высоту вровень с остальными инпутами */
+    background: var(--color-surface-1);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: 8px;
+    padding: 0 12px;
+    color: var(--color-text-primary);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap; /* Запрещаем кнопке ломаться на 2 строки */
+
+    &:hover,
+    &.active {
+      border-color: var(--color-accent-primary);
+      background: var(--color-surface-2);
+      color: var(--color-accent-primary);
+    }
+
+    span {
+      flex: 1;
+      text-align: left;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap; /* Длинный текст обрезается троеточием */
+    }
+
+    .icon-chevron {
+      color: var(--color-text-muted);
+      transition: transform 0.2s;
+      flex-shrink: 0; /* Не даем иконке сплющиваться */
+    }
+
+    &.active .icon-chevron {
+      transform: rotate(180deg);
+    }
+  }
+
+  &__menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    width: 100%;
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-border-strong);
+    border-radius: 8px;
+    padding: 4px;
+    z-index: 100;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 2px;
   }
 
-  &__empty {
-    text-align: center;
-    padding: 40px 0;
-    color: var(--color-text-muted);
-    font-size: 14px;
-  }
-}
-.task-board__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 32px;
-}
-
-.task-board__header-title {
-  display: flex;
-  align-items: baseline;
-  gap: 16px;
-
-  h2 {
-    font-size: 28px;
-    font-weight: 700;
+  &__item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
     color: var(--color-text-primary);
-    margin: 0;
+    font-size: 14px;
+    cursor: pointer;
+    transition:
+      background 0.2s,
+      color 0.2s;
+
+    &:hover {
+      background: var(--color-surface-3);
+    }
+
+    &.selected {
+      background: rgba(139, 92, 246, 0.15);
+      color: #8b5cf6;
+      font-weight: 500;
+    }
+  }
+
+  /* НАТИВНЫЙ СЕЛЕКТ ДЛЯ МОБИЛОК (Полностью невидим) */
+  &__native {
+    display: none;
+    @include mobile {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      z-index: 10;
+      cursor: pointer;
+      appearance: none;
+    }
   }
 }
 
-.task-board__add-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  background: var(--color-accent-primary);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: var(--color-accent-hover);
-    transform: translateY(-1px);
+// Отключаем всплывающее кастомное меню на мобилках
+@include mobile {
+  .custom-dropdown__menu {
+    display: none !important;
   }
 }

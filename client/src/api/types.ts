@@ -42,3 +42,9 @@ export interface Task {
 export type TaskPayload = Partial<
   Omit<Task, "id" | "_id" | "createdAt" | "updatedAt">
 >;
+export interface Folder {
+  id: string;
+  _id: string;
+  name: string;
+  userId: string;
+}

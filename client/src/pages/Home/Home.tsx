@@ -48,7 +48,7 @@ const Home = () => {
 
   return (
     <div className="home">
-      <Sidebar activeFilter={activeFilter} onFilterChange={setActiveFilter} />
+      <Sidebar activeFilter={activeFilter} setActiveFilter={setActiveFilter} />
 
       <TaskBoard
         activeFilter={activeFilter}

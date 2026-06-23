@@ -46,22 +46,6 @@ const AuthDeco = () => {
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
   }, []);
-  useEffect(() => {
-    const tg = window.Telegram?.WebApp;
-
-    // Сообщаем Телеграму, что наше приложение готово к отрисовке
-    tg?.ready();
-
-    // Проверяем, открыт ли сайт внутри Телеграма и есть ли данные юзера
-    if (tg?.initDataUnsafe?.user) {
-      const user = tg.initDataUnsafe.user;
-      console.log("Ого, мы в Телеграме! Привет:", user.first_name);
-      console.log("Телеграм ID:", user.id);
-      console.log("Юзернейм:", user.username);
-    } else {
-      console.log("Открыто в обычном браузере, Телеграма тут нет.");
-    }
-  }, []);
 
   useEffect(() => {
     const update = () => {

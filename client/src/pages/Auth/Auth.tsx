@@ -4,16 +4,18 @@ import AuthDeco from "@/components/AuthDeco";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom"; // 1. Импортируем хук
 import { useTelegramAuth } from "@/hooks/useApi";
+import { usePageTransition } from "@/context/TransitionContext";
 
 const Auth = () => {
   const navigate = useNavigate();
+  const { startTransition } = usePageTransition();
   const { mutate: telegramLogin, isPending: isTelegramLoading } =
     useTelegramAuth();
 
   // 3. Дополнительно проверяем наличие токена при загрузке страницы
   useEffect(() => {
     if (localStorage.getItem("token")) {
-      navigate("/home");
+      startTransition("/home");
     }
     console.log(isTelegramLoading);
   }, [navigate]);
@@ -33,7 +35,7 @@ const Auth = () => {
         },
         {
           // 4. Отрабатываем успех внутри мутации
-          onSuccess: () => navigate("/home"),
+          onSuccess: () => startTransition("/home"),
         },
       );
     }

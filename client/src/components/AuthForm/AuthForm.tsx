@@ -60,7 +60,7 @@ const AuthForm = () => {
     <>
       <div className="auth-form">
         <h1 className="auth-form__title">
-          {isLogin ? `Вход ${user.first_name}` : "Регистрация"}
+          {isLogin ? `Вход ${user?.first_name}` : "Регистрация"}
         </h1>
         <p className="auth-form__subtitle">
           {isLogin ? "Рады видеть тебя снова" : "Создай свой аккаунт"}

@@ -1,7 +1,86 @@
-import { useState, useEffect } from "react";
-import { X, Calendar, Flag, Folder, AlignLeft, Tag } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import {
+  X,
+  Calendar,
+  Flag,
+  Folder,
+  AlignLeft,
+  Tag,
+  Star,
+  ChevronDown,
+} from "lucide-react";
 import type { TaskPayload, Priority } from "@/api/types";
+import { useFolders } from "@/hooks/useFolders";
 import "./CreateTaskModal.scss";
+
+// Кастомный Dropdown специально для модалки (с нативным селектом для мобилок)
+const ModalDropdown = ({ icon, value, options, onChange }: any) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find((o: any) => o.value === value);
+
+  return (
+    <div className="modal-custom-select" ref={dropdownRef}>
+      {/* Невидимый нативный селект для мобилок */}
+      <select
+        className="modal-custom-select__native"
+        value={value}
+        onChange={(e) => {
+          onChange(e.target.value);
+          setIsOpen(false);
+        }}
+      >
+        {options.map((opt: any) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+
+      <button
+        className={`modal-custom-select__toggle ${isOpen ? "active" : ""}`}
+        onClick={() => setIsOpen(!isOpen)}
+        type="button"
+      >
+        {icon}
+        <span>{selectedOption?.label}</span>
+        <ChevronDown size={16} className="icon-chevron" />
+      </button>
+
+      {isOpen && (
+        <div className="modal-custom-select__menu">
+          {options.map((opt: any) => (
+            <button
+              key={opt.value}
+              type="button"
+              className={`modal-custom-select__item ${opt.value === value ? "selected" : ""}`}
+              onClick={() => {
+                onChange(opt.value);
+                setIsOpen(false);
+              }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 interface CreateTaskModalProps {
   isOpen: boolean;
@@ -14,14 +93,25 @@ const CreateTaskModal = ({
   onClose,
   onSubmit,
 }: CreateTaskModalProps) => {
+  const { folders } = useFolders(); // Достаем реальные папки из базы
+
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
   const [priority, setPriority] = useState<Priority>("medium");
   const [deadline, setDeadline] = useState("");
   const [projectId, setProjectId] = useState("inbox");
   const [tagsInput, setTagsInput] = useState("");
+  const [important, setImportant] = useState(false); // НОВЫЙ СТЕЙТ ВАЖНОСТИ
 
   const [error, setError] = useState(false);
+
+  // Формируем список папок
+  const projectOptions = [
+    { value: "work", label: "Работа" },
+    { value: "home", label: "Дом" },
+    { value: "home", label: "Идеи" },
+    ...folders.map((f) => ({ value: f.id, label: f.name })),
+  ];
 
   useEffect(() => {
     if (isOpen) {
@@ -29,8 +119,9 @@ const CreateTaskModal = ({
       setNotes("");
       setPriority("medium");
       setDeadline("");
-      setProjectId("inbox");
+      setProjectId("work");
       setTagsInput("");
+      setImportant(false);
       setError(false);
     }
   }, [isOpen]);
@@ -57,6 +148,7 @@ const CreateTaskModal = ({
       deadline,
       projectId,
       tags,
+      important, // Отправляем важность
     });
 
     onClose();
@@ -161,20 +253,40 @@ const CreateTaskModal = ({
             </div>
           </div>
 
-          <div className="form-group">
-            <label className="form-label">
-              <Folder size={16} />
-              Проект
-            </label>
-            <select
-              className="form-input form-select"
-              value={projectId}
-              onChange={(e) => setProjectId(e.target.value)}
-            >
-              <option value="inbox">Входящие</option>
-              <option value="work">Работа</option>
-              <option value="home">Дом</option>
-            </select>
+          {/* НОВЫЙ РЯД: Проект и Важность */}
+          <div className="form-row">
+            <div className="form-group form-group--half">
+              <label className="form-label">
+                <Folder size={16} />
+                Проект
+              </label>
+              <ModalDropdown
+                icon={
+                  <Folder
+                    size={16}
+                    style={{ color: "var(--color-text-muted)" }}
+                  />
+                }
+                options={projectOptions}
+                value={projectId}
+                onChange={setProjectId}
+              />
+            </div>
+
+            <div className="form-group form-group--half">
+              <label className="form-label">
+                <Star size={16} />
+                Важность
+              </label>
+              <button
+                type="button"
+                className={`important-toggle-btn ${important ? "active" : ""}`}
+                onClick={() => setImportant(!important)}
+              >
+                <Star size={18} fill={important ? "currentColor" : "none"} />
+                <span>{important ? "Важная задача" : "Обычная задача"}</span>
+              </button>
+            </div>
           </div>
 
           <footer className="modal-footer">

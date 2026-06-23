@@ -1,3 +1,5 @@
+@use "@/styles/helpers/index" as *;
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -11,6 +13,7 @@
   justify-content: center;
   z-index: 1000;
   animation: fadeIn 0.2s ease-out;
+  padding: 16px;
 }
 
 .modal-content {
@@ -21,7 +24,10 @@
   border: 1px solid var(--color-border-subtle);
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
   animation: slideUp 0.3s ease-out;
-  overflow: hidden;
+  overflow: visible; /* Чтобы выпадающие списки не обрезались */
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .modal-header {
@@ -29,6 +35,11 @@
   align-items: center;
   justify-content: space-between;
   padding: 24px 32px 16px;
+  flex-shrink: 0;
+
+  @include mobile {
+    padding: 20px 20px 16px;
+  }
 
   h2 {
     font-size: 20px;
@@ -60,6 +71,20 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  overflow-y: auto;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--color-surface-3);
+    border-radius: 4px;
+  }
+
+  @include mobile {
+    padding: 0 20px 24px;
+    gap: 20px;
+  }
 }
 
 .form-group {
@@ -75,6 +100,11 @@
 .form-row {
   display: flex;
   gap: 16px;
+
+  @include mobile {
+    flex-direction: column;
+    gap: 20px;
+  }
 }
 
 .form-label {
@@ -98,6 +128,7 @@
   font-size: 14px;
   outline: none;
   transition: all 0.2s;
+  height: 44px; /* Фиксируем высоту для однострочных инпутов */
 
   &::placeholder {
     color: var(--color-text-muted);
@@ -114,6 +145,7 @@
     background: transparent;
     padding: 0;
     border-radius: 0;
+    height: auto;
 
     &:focus {
       border-color: transparent;
@@ -129,6 +161,7 @@
 .form-textarea {
   resize: vertical;
   min-height: 80px;
+  height: auto;
 }
 
 .form-input-with-icon {
@@ -153,16 +186,12 @@
   .form-input {
     padding: 0;
     background: transparent;
+    height: auto;
 
     &:focus {
       border-color: transparent;
     }
   }
-}
-
-.form-select {
-  appearance: none;
-  cursor: pointer;
 }
 
 .form-error-text {
@@ -171,12 +200,14 @@
   margin-top: 4px;
 }
 
+/* Приоритет */
 .priority-selector {
   display: flex;
   gap: 8px;
   background: var(--color-surface-2);
   padding: 4px;
   border-radius: 8px;
+  height: 44px;
 }
 
 .priority-btn {
@@ -205,25 +236,179 @@
     color: var(--color-status-error);
     background: rgba(239, 68, 68, 0.15);
   }
-
   &--medium.active {
     color: var(--color-status-warning);
     background: rgba(245, 158, 11, 0.15);
   }
-
   &--low.active {
     color: var(--color-status-success);
     background: rgba(16, 185, 129, 0.15);
   }
 }
 
+/* Кнопка Важности (Звездочка) */
+.important-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 44px;
+  background: var(--color-surface-2);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background: var(--color-surface-3);
+    color: var(--color-text-primary);
+  }
+
+  &.active {
+    background: rgba(245, 158, 11, 0.1); /* Желтоватый фон */
+    color: var(--color-status-warning);
+    border-color: rgba(245, 158, 11, 0.3);
+  }
+}
+
+/* Кастомный селект папок (Только для модалки) */
+.modal-custom-select {
+  position: relative;
+  width: 100%;
+  height: 44px;
+
+  &__toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    height: 100%;
+    background: var(--color-surface-2);
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 0 16px;
+    color: var(--color-text-primary);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover,
+    &.active {
+      border-color: var(--color-accent-primary);
+      background: var(--color-surface-1);
+    }
+
+    span {
+      flex: 1;
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .icon-chevron {
+      color: var(--color-text-muted);
+      transition: transform 0.2s;
+    }
+
+    &.active .icon-chevron {
+      transform: rotate(180deg);
+    }
+  }
+
+  &__menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    width: 100%;
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-border-strong);
+    border-radius: 8px;
+    padding: 4px;
+    z-index: 1100; /* Должно быть поверх модалки */
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-height: 200px;
+    overflow-y: auto;
+
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: var(--color-surface-3);
+      border-radius: 4px;
+    }
+  }
+
+  &__item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    padding: 10px 12px;
+    border-radius: 6px;
+    color: var(--color-text-primary);
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:hover {
+      background: var(--color-surface-3);
+    }
+
+    &.selected {
+      background: rgba(139, 92, 246, 0.15);
+      color: var(--color-accent-primary);
+      font-weight: 500;
+    }
+  }
+
+  /* Нативный селект для мобилок */
+  &__native {
+    display: none;
+
+    @include mobile {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      z-index: 10;
+      cursor: pointer;
+      appearance: none;
+    }
+  }
+}
+
+// Отключаем меню на мобилках
+@include mobile {
+  .modal-custom-select__menu {
+    display: none !important;
+  }
+}
+
+/* Футер и кнопки */
 .modal-footer {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  margin-top: 16px;
+  margin-top: 8px;
   padding-top: 24px;
   border-top: 1px solid var(--color-border-subtle);
+
+  @include mobile {
+    flex-direction: column-reverse;
+    gap: 12px;
+  }
 }
 
 .btn {
@@ -234,11 +419,18 @@
   cursor: pointer;
   border: none;
   transition: all 0.2s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  @include mobile {
+    width: 100%;
+    padding: 14px 20px;
+  }
 
   &--secondary {
     background: transparent;
     color: var(--color-text-secondary);
-
     &:hover {
       background: var(--color-surface-2);
       color: var(--color-text-primary);
@@ -248,10 +440,14 @@
   &--primary {
     background: var(--color-accent-primary);
     color: white;
-
     &:hover {
       background: var(--color-accent-hover);
       transform: translateY(-1px);
+    }
+    @include mobile {
+      &:hover {
+        transform: none;
+      }
     }
   }
 }
@@ -264,7 +460,6 @@
     opacity: 1;
   }
 }
-
 @keyframes slideUp {
   from {
     opacity: 0;

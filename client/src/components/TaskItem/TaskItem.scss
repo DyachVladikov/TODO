@@ -2,47 +2,37 @@
 
 .task-item {
   display: flex;
-  flex-direction: column;
+  align-items: flex-start;
   background: var(--color-surface-1);
   border: 1px solid var(--color-border-subtle);
   border-radius: 12px;
-  padding: 12px 16px;
+  padding: 16px 20px; /* Увеличили паддинги, карточка стала больше */
   cursor: pointer;
   transition:
     border-color 0.2s,
-    background 0.2s;
+    background 0.2s,
+    box-shadow 0.2s;
+  gap: 18px; /* Расстояние между элементами больше */
+  overflow: hidden;
 
   @include mobile {
-    padding: 12px;
-  }
-
-  &:hover {
-    border-color: var(--color-border-strong);
-    background: var(--color-surface-2);
+    padding: 14px;
+    gap: 14px;
   }
 
   &--completed {
     opacity: 0.6;
     .task-item__title {
       text-decoration: line-through;
-      color: var(--color-text-muted);
+      color: var(--color-text-muted) !important;
     }
   }
 
-  &__main {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-
-    @include mobile {
-      gap: 12px;
-    }
-  }
-
+  /* --- ЧЕКБОКС (Больше) --- */
   &__checkbox {
-    width: 20px;
-    height: 20px;
-    border-radius: 6px;
+    width: 24px;
+    height: 24px;
+    border-radius: 8px;
     border: 2px solid var(--color-text-muted);
     background: transparent;
     display: flex;
@@ -51,6 +41,7 @@
     cursor: pointer;
     color: var(--color-back-ground);
     flex-shrink: 0;
+    margin-top: 2px; // Чтобы ровно стоял с первой строкой текста
 
     &--active {
       background: var(--color-accent-primary);
@@ -59,99 +50,95 @@
     }
   }
 
+  /* --- КОНТЕЙНЕР КОНТЕНТА --- */
   &__content {
     flex: 1;
     min-width: 0;
-    position: relative;
-    display: flex;
-    align-items: center;
   }
 
-  &__standard-layout,
-  &__hover-layout {
+  /* === СОСТОЯНИЕ ПО УМОЛЧАНИЮ (Компактное) === */
+  &__view-compact {
     display: flex;
     align-items: center;
+    gap: 14px;
+    height: 28px; /* Жесткая высота для ровности */
+
+    .task-item__title {
+      font-size: 16px; /* Больше шрифт */
+      font-weight: 500;
+      color: var(--color-text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: color 0.2s;
+    }
+
+    .task-item__mini-badges {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--color-text-muted);
+      flex-shrink: 0;
+
+      svg {
+        flex-shrink: 0;
+      }
+    }
+  }
+
+  /* === СОСТОЯНИЕ ПРИ НАВЕДЕНИИ (Раскрытое) === */
+  &__view-expanded {
+    display: none; /* Скрыто по умолчанию */
+    flex-direction: column;
+    gap: 14px;
+
+    /* Анимированное название (будет уезжать в центр) */
+    .task-item__title--animated {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--color-accent-primary);
+      line-height: 1.4;
+      word-wrap: break-word;
+      transform: translateX(0); /* По умолчанию left */
+    }
+
+    /* Раскрытые бэйджи */
+    .task-badge {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      background: var(--color-surface-2);
+      padding: 6px 12px; /* Увеличили */
+      border-radius: 8px;
+
+      span {
+        color: inherit;
+      }
+    }
+  }
+
+  /* Центрированные бэйджи раскрытого вида */
+  &__center-badges {
+    display: flex;
+    flex-wrap: wrap;
     gap: 12px;
-    width: 100%;
-    transition: opacity 0.2s;
-
-    @include mobile {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 6px;
-    }
+    justify-content: center; /* Принудительно по центру */
   }
 
-  &__hover-layout {
-    position: absolute;
-    top: 0;
-    left: 0;
-    opacity: 0;
-    pointer-events: none;
-
-    /* ЖЕСТКО ОТКЛЮЧАЕМ ховер-лейаут на мобилках */
-    @include mobile {
-      display: none !important;
-    }
-  }
-
-  /* Переключение лейаутов только на десктопе */
-  @include tablet-above {
-    &:hover &__standard-layout {
-      opacity: 0;
-    }
-    &:hover &__hover-layout {
-      opacity: 1;
-      pointer-events: auto;
-    }
-  }
-
-  &__title {
-    color: var(--color-text-primary);
-    font-size: 14px;
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    flex: 1;
-
-    @include mobile {
-      width: 100%;
-    }
-  }
-
-  &__badges {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
-
-    @include mobile {
-      flex-wrap: wrap; /* Разрешаем перенос бейджей */
-    }
-  }
-
-  &__badge {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 11px;
-    font-weight: 600;
-    padding: 2px 6px;
-    border-radius: 4px;
-    background: var(--color-surface-2);
-    white-space: nowrap;
-
-    span {
-      color: inherit;
-    }
-  }
-
+  /* Действия (Star/Trash) Справа */
   &__actions {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     flex-shrink: 0;
+    margin-top: 2px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease-in-out;
   }
 
   &__btn {
@@ -159,11 +146,11 @@
     border: none;
     color: var(--color-text-muted);
     cursor: pointer;
-    padding: 4px;
+    padding: 8px; /* Больше для удобства апи */
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
+    border-radius: 8px;
     transition:
       color 0.2s,
       background 0.2s;
@@ -174,83 +161,173 @@
     }
     &--important {
       color: var(--color-status-warning);
+      opacity: 1 !important;
     }
     &--delete:hover {
       color: var(--color-status-error);
-      background: rgba(239, 68, 68, 0.1);
+      background: rgba(239, 68, 68, 0.15);
     }
   }
 
-  &__expanded {
+  /* --- Анимированные Детали раскрытого вида --- */
+  &__view-details {
     display: flex;
     flex-direction: column;
-    margin-top: 8px; /* Делаем отступ аккуратнее */
-    /* Убрали постоянную пунктирную линию, чтобы не было пустой дыры */
+    gap: 14px;
+    opacity: 0; /* Прячем для анимации */
   }
 
-  &__expanded-content {
+  /* Описание и Чек-листы */
+  &__notes-container {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
+    padding: 14px;
+    background: var(--color-surface-2);
+    border-radius: 10px;
+    line-height: 1.5;
   }
 
-  &__notes {
-    font-size: 13px;
+  &__note-line {
+    font-size: 14px;
     color: var(--color-text-secondary);
     display: flex;
-    gap: 8px;
+    gap: 10px;
     align-items: flex-start;
-    line-height: 1.4;
-    padding-top: 8px;
-    border-top: 1px dashed var(--color-border-subtle); /* Пунктир будет только над описанием, если оно есть */
 
     svg {
       flex-shrink: 0;
-      margin-top: 2px;
+      margin-top: 3px;
     }
   }
 
+  /* Футер раскрытого вида: Теги и Дата */
   &__expanded-footer {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-end;
     width: 100%;
+    margin-top: 8px;
 
     @include mobile {
       flex-direction: column;
       align-items: flex-start;
-      gap: 6px;
+      gap: 10px;
     }
   }
 
-  &__bottom-tags {
+  &__tags {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-  }
-
-  &__bottom-tag {
-    font-size: 11px;
-    color: var(--color-text-muted);
-    opacity: 0.4;
-    transition: opacity 0.2s;
-    cursor: default;
-
-    &:hover {
-      opacity: 0.8;
+    span {
+      font-size: 12px;
+      color: var(--color-text-muted);
+      opacity: 0.6;
     }
   }
 
-  &__created {
+  &__date {
     display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 11px;
+    font-size: 12px;
     color: var(--color-text-muted);
     margin-left: auto;
-
     @include mobile {
       margin-left: 0;
+    }
+  }
+
+  /* ========================================= */
+  /* === МАГИЯ HOVER (animated sequence) ===== */
+  /* ========================================= */
+
+  /* Десктопное поведение: вся анимированная цепочка */
+  @include tablet-above {
+    &:hover {
+      border-color: var(--color-border-strong);
+      background: var(--color-surface-2);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+
+      /* animated slide Down content sequence */
+      .task-item__view-compact {
+        display: none;
+      }
+
+      .task-item__view-expanded {
+        display: flex;
+        animation: slideDownFadeIn 0.3s ease-out forwards;
+      }
+
+      /* Последовательность анимации для деталей */
+
+      // 1. Название уезжает в центр (translateX на глаз)
+      .task-item__title--animated {
+        animation: centerTitle 0.3s ease-out forwards;
+      }
+
+      // 2. Спустя 0.1s плавно выпадают бэйджи и описание
+      .task-item__view-details {
+        animation: slideDownFadeIn 0.3s 0.1s ease-out forwards;
+      }
+
+      // 3. Появляются кнопки действий Справа
+      .task-item__actions {
+        animation: slideDownFadeIn 0.3s 0.2s ease-out forwards;
+        pointer-events: auto;
+      }
+    }
+  }
+
+  /* На мобилках нет ховера, поэтому СРАЗУ показываем расширенный вид */
+  @include tablet {
+    .task-item__view-compact {
+      display: none !important;
+    }
+
+    .task-item__view-expanded {
+      display: flex !important;
+      opacity: 1;
+
+      .task-item__title--animated {
+        transform: translateX(0); /* Без смещения в центр на мобилках */
+        color: var(--color-accent-primary);
+        text-align: left;
+      }
+
+      .task-item__view-details {
+        opacity: 1;
+      }
+    }
+
+    .task-item__actions {
+      opacity: 1 !important;
+      pointer-events: auto !important;
+    }
+  }
+
+  /* === АНИМАЦИИ === */
+  @keyframes slideDownFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes centerTitle {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(
+        calc(50vw - 50% - 16px - 10px - 20px)
+      ); // Adjust translateX to center.
+      color: var(--color-accent-primary);
     }
   }
 }

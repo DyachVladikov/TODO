@@ -3,7 +3,7 @@ import Sidebar from "@/components/SideBar";
 import TaskBoard from "@/components/TaskBoard/TaskBoard";
 import TaskDetails from "@/components/TaskDetails/TaskDetails";
 import CreateTaskModal from "@/components/CreateTaskModal/CreateTaskModal";
-import type { Task, TaskPayload } from "@/api/types";
+import type { TaskPayload } from "@/api/types";
 import {
   useTasks,
   useCreateTask,

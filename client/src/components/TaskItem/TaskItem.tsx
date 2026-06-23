@@ -37,7 +37,6 @@ const TaskItem = ({
     return { label: "Низкий", color: "var(--color-status-success)" };
   };
 
-  // Вся логика папок и цветов внутри компонента, как в Sidebar
   const getProjectMeta = (id: string) => {
     const defaultProjects = [
       { id: "inbox", label: "Входящие", color: "var(--color-text-muted)" },
@@ -50,139 +49,148 @@ const TaskItem = ({
     if (standard) return standard;
 
     const custom = folders.find((f) => f.id === id);
-    if (custom) return { id, label: custom.name, color: "#FFFFFF" }; // Кастомные папки белые
+    if (custom) return { id, label: custom.name, color: "#FFFFFF" };
 
     return { id, label: "Папка", color: "var(--color-text-muted)" };
   };
 
   const projectMeta = getProjectMeta(task.projectId);
+  const priorityMeta = getPriorityMeta(task.priority as Priority);
 
   const formatDeadline = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("ru-RU");
+    return new Date(dateString).toLocaleDateString("ru-RU");
   };
+
+  const hasTags = task.tags && task.tags.length > 0;
 
   return (
     <div
       className={`task-item ${task.completed ? "task-item--completed" : ""}`}
       onClick={() => onClick(task)}
     >
-      {/* ЛЕВАЯ ЧАСТЬ: Чекбокс */}
-      <button
-        className={`task-item__checkbox ${task.completed ? "task-item__checkbox--active" : ""}`}
-        onClick={(e) => {
-          e.stopPropagation();
-          onToggleStatus();
-        }}
-      >
-        {task.completed && <Check size={16} />}
-      </button>
+      {/* 1. ШАПКА КАРТОЧКИ (Всегда видна) */}
+      <div className="task-item__header">
+        {/* Чекбокс (Слева) */}
+        <button
+          className={`task-item__checkbox ${task.completed ? "task-item__checkbox--active" : ""}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleStatus();
+          }}
+        >
+          {task.completed && <Check size={16} />}
+        </button>
 
-      {/* ЦЕНТРАЛЬНАЯ ЧАСТЬ: Контент */}
-      <div className="task-item__content">
-        {/* === СОСТОЯНИЕ ПО УМОЛЧАНИЮ (Свернуто, минимализм) === */}
-        <div className="task-item__view-compact">
+        {/* Название и Мини-бэйджи */}
+        <div className="task-item__title-area">
           <span className="task-item__title">{task.title}</span>
+
           <div className="task-item__mini-badges">
-            {task.deadline && <Clock size={16} />}
-            <Flag
-              size={16}
-              style={{
-                color: getPriorityMeta(task.priority as Priority).color,
-              }}
-            />
+            {/* ХИРУРГИЧЕСКАЯ ВСТАВКА: Звездочка для важных задач в свернутом виде */}
+            {task.important && (
+              <Star
+                size={16}
+                color="var(--color-status-warning)"
+                fill="var(--color-status-warning)"
+              />
+            )}
+
+            <Clock size={16} style={{ opacity: task.deadline ? 1 : 0.4 }} />
+            <Flag size={16} style={{ color: priorityMeta.color }} />
             <Folder size={16} style={{ color: projectMeta.color }} />
           </div>
         </div>
 
-        {/* === СОСТОЯНИЕ ПРИ НАВЕДЕНИИ (Animated Sequence) === */}
-        <div className="task-item__view-expanded">
-          <span className="task-item__title task-item__title--animated">
-            {task.title}
-          </span>
-
-          <div className="task-item__view-details">
-            <div className="task-item__center-badges">
-              {task.deadline && (
-                <div
-                  className="task-badge deadline"
-                  style={{ color: "var(--color-text-muted)" }}
-                >
-                  <Clock size={12} />
-                  <span>{formatDeadline(task.deadline)}</span>
-                </div>
-              )}
-              <div
-                className="task-badge priority"
-                style={{
-                  color: getPriorityMeta(task.priority as Priority).color,
-                }}
-              >
-                <Flag size={12} />
-                <span>{getPriorityMeta(task.priority as Priority).label}</span>
-              </div>
-              <div
-                className="task-badge folder"
-                style={{ color: projectMeta.color }}
-              >
-                <Folder size={12} />
-                <span>{projectMeta.label}</span>
-              </div>
-            </div>
-
-            {(task.notes ||
-              (task.tags && task.tags.length > 0) ||
-              (task.checkList && task.checkList.length > 0)) && (
-              <div className="task-item__notes-container">
-                {task.notes && (
-                  <div className="task-item__note-line">
-                    <AlignLeft size={14} />
-                    <span>{task.notes}</span>
-                  </div>
-                )}
-                {task.checkList && task.checkList.length > 0 && (
-                  <div className="task-item__note-line">
-                    <CheckSquare size={14} />
-                    <span>
-                      Чек-лист:{" "}
-                      {task.checkList.filter((i) => i.completed).length} /{" "}
-                      {task.checkList.length}
-                    </span>
-                  </div>
-                )}
-                <div className="task-item__tags">
-                  {task.tags?.map((tag) => (
-                    <span key={tag}>#{tag}</span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+        {/* Действия (Справа, появляются при наведении) */}
+        <div className="task-item__actions">
+          <button
+            className={`task-item__btn ${task.important ? "task-item__btn--important" : ""}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleImportant();
+            }}
+            title="Отметить как важное"
+          >
+            <Star size={18} fill={task.important ? "currentColor" : "none"} />
+          </button>
+          <button
+            className="task-item__btn task-item__btn--delete"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+            title="Удалить задачу"
+          >
+            <Trash2 size={18} />
+          </button>
         </div>
       </div>
 
-      {/* ПРАВАЯ ЧАСТЬ: Действия (Появляются при наведении) */}
-      <div className="task-item__actions">
-        <button
-          className={`task-item__btn ${task.important ? "task-item__btn--important" : ""}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleImportant();
-          }}
-          title="Отметить как важное"
-        >
-          <Star size={16} fill={task.important ? "currentColor" : "none"} />
-        </button>
-        <button
-          className="task-item__btn task-item__btn--delete"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete();
-          }}
-          title="Удалить задачу"
-        >
-          <Trash2 size={16} />
-        </button>
+      {/* 2. РАСКРЫВАЮЩАЯСЯ ЧАСТЬ (Анимация высоты) */}
+      <div className="task-item__expanded">
+        <div className="task-item__expanded-inner">
+          {/* Полные бэйджи по центру в КРАСИВЫХ РАМКАХ */}
+          <div className="task-item__full-badges">
+            <div
+              className="task-badge"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              <Clock size={14} />
+              <span>
+                {task.deadline ? formatDeadline(task.deadline) : "Бессрочно"}
+              </span>
+            </div>
+
+            <div className="task-badge" style={{ color: priorityMeta.color }}>
+              <Flag size={14} />
+              <span>{priorityMeta.label}</span>
+            </div>
+
+            <div className="task-badge" style={{ color: projectMeta.color }}>
+              <Folder size={14} />
+              <span>{projectMeta.label}</span>
+            </div>
+          </div>
+
+          {/* Описание и Чек-листы */}
+          {(task.notes || (task.checkList && task.checkList.length > 0)) && (
+            <div className="task-item__notes-section">
+              {task.notes && (
+                <div className="note-line">
+                  <AlignLeft size={16} />
+                  <span>{task.notes}</span>
+                </div>
+              )}
+              {task.checkList && task.checkList.length > 0 && (
+                <div className="note-line">
+                  <CheckSquare size={16} />
+                  <span>
+                    Чек-лист: {task.checkList.filter((i) => i.completed).length}{" "}
+                    / {task.checkList.length}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Футер: Теги (Слева) и Дата (Справа) */}
+          <div className="task-item__footer">
+            <div className="task-item__tags">
+              {hasTags ? (
+                task.tags!.map((tag) => <span key={tag}>#{tag}</span>)
+              ) : (
+                <span className="task-item__placeholder-tag">#теги</span>
+              )}
+            </div>
+
+            <div className="task-item__date">
+              <Clock size={12} />
+              <span>
+                Создано: {new Date(task.createdAt).toLocaleDateString("ru-RU")}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

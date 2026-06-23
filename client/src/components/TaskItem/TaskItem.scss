@@ -1,23 +1,17 @@
 @use "@/styles/helpers/index" as *;
 
 .task-item {
-  display: flex;
-  align-items: flex-start;
   background: var(--color-surface-1);
   border: 1px solid var(--color-border-subtle);
   border-radius: 12px;
-  padding: 16px 20px; /* Увеличили паддинги, карточка стала больше */
+  padding: 16px 20px;
   cursor: pointer;
-  transition:
-    border-color 0.2s,
-    background 0.2s,
-    box-shadow 0.2s;
-  gap: 18px; /* Расстояние между элементами больше */
-  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 
   @include mobile {
-    padding: 14px;
-    gap: 14px;
+    padding: 14px 16px;
   }
 
   &--completed {
@@ -28,7 +22,14 @@
     }
   }
 
-  /* --- ЧЕКБОКС (Больше) --- */
+  /* --- 1. ШАПКА --- */
+  &__header {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 16px;
+  }
+
   &__checkbox {
     width: 24px;
     height: 24px;
@@ -41,7 +42,7 @@
     cursor: pointer;
     color: var(--color-back-ground);
     flex-shrink: 0;
-    margin-top: 2px; // Чтобы ровно стоял с первой строкой текста
+    transition: all 0.2s;
 
     &--active {
       background: var(--color-accent-primary);
@@ -50,95 +51,47 @@
     }
   }
 
-  /* --- КОНТЕЙНЕР КОНТЕНТА --- */
-  &__content {
+  &__title-area {
     flex: 1;
-    min-width: 0;
-  }
-
-  /* === СОСТОЯНИЕ ПО УМОЛЧАНИЮ (Компактное) === */
-  &__view-compact {
     display: flex;
     align-items: center;
-    gap: 14px;
-    height: 28px; /* Жесткая высота для ровности */
-
-    .task-item__title {
-      font-size: 16px; /* Больше шрифт */
-      font-weight: 500;
-      color: var(--color-text-primary);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      transition: color 0.2s;
-    }
-
-    .task-item__mini-badges {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: var(--color-text-muted);
-      flex-shrink: 0;
-
-      svg {
-        flex-shrink: 0;
-      }
-    }
-  }
-
-  /* === СОСТОЯНИЕ ПРИ НАВЕДЕНИИ (Раскрытое) === */
-  &__view-expanded {
-    display: none; /* Скрыто по умолчанию */
-    flex-direction: column;
-    gap: 14px;
-
-    /* Анимированное название (будет уезжать в центр) */
-    .task-item__title--animated {
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--color-accent-primary);
-      line-height: 1.4;
-      word-wrap: break-word;
-      transform: translateX(0); /* По умолчанию left */
-    }
-
-    /* Раскрытые бэйджи */
-    .task-badge {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-      background: var(--color-surface-2);
-      padding: 6px 12px; /* Увеличили */
-      border-radius: 8px;
-
-      span {
-        color: inherit;
-      }
-    }
-  }
-
-  /* Центрированные бэйджи раскрытого вида */
-  &__center-badges {
-    display: flex;
-    flex-wrap: wrap;
     gap: 12px;
-    justify-content: center; /* Принудительно по центру */
+    position: relative;
   }
 
-  /* Действия (Star/Trash) Справа */
+  /* УВЕЛИЧЕННЫЙ ШРИФТ НАЗВАНИЯ */
+  &__title {
+    font-size: 18px; /* Сделали крупнее */
+    font-weight: 600;
+    color: var(--color-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transform-origin: left center; /* Важно для плавного увеличения */
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  &__mini-badges {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--color-text-muted);
+    overflow: hidden;
+    max-width: 200px;
+    opacity: 1;
+    transition: all 0.3s ease;
+
+    svg {
+      flex-shrink: 0;
+    }
+  }
+
   &__actions {
     display: flex;
-    align-items: center;
-    gap: 6px;
-    flex-shrink: 0;
-    margin-top: 2px;
+    gap: 4px;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.2s ease-in-out;
+    transition: opacity 0.3s ease;
   }
 
   &__btn {
@@ -146,14 +99,12 @@
     border: none;
     color: var(--color-text-muted);
     cursor: pointer;
-    padding: 8px; /* Больше для удобства апи */
+    padding: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 8px;
-    transition:
-      color 0.2s,
-      background 0.2s;
+    transition: all 0.2s;
 
     &:hover {
       background: var(--color-surface-3);
@@ -169,45 +120,75 @@
     }
   }
 
-  /* --- Анимированные Детали раскрытого вида --- */
-  &__view-details {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    opacity: 0; /* Прячем для анимации */
+  /* --- 2. РАСКРЫВАЮЩИЙСЯ КОНТЕНТ --- */
+  &__expanded {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition:
+      grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+      margin-top 0.4s;
   }
 
-  /* Описание и Чек-листы */
-  &__notes-container {
+  &__expanded-inner {
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* КРАСИВЫЕ РАМКИ ДЛЯ БЭЙДЖЕЙ */
+  &__full-badges {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding-top: 8px;
+  }
+
+  .task-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    background: transparent;
+    /* ТРЮК: Рамка берет цвет из inline-style color, который мы передали! */
+    border: 1px solid currentColor;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Легкая тень для объема */
+  }
+
+  &__notes-section {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    padding: 14px;
-    background: var(--color-surface-2);
-    border-radius: 10px;
-    line-height: 1.5;
+    padding: 0 4px;
   }
 
-  &__note-line {
+  .note-line {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
     font-size: 14px;
     color: var(--color-text-secondary);
-    display: flex;
-    gap: 10px;
-    align-items: flex-start;
+    line-height: 1.5;
 
     svg {
-      flex-shrink: 0;
       margin-top: 3px;
+      color: var(--color-text-muted);
+      flex-shrink: 0;
     }
   }
 
-  /* Футер раскрытого вида: Теги и Дата */
-  &__expanded-footer {
+  &__footer {
     display: flex;
     justify-content: space-between;
-    align-items: flex-end;
-    width: 100%;
-    margin-top: 8px;
+    align-items: center;
+    margin-top: 4px;
+    padding: 0 4px;
 
     @include mobile {
       flex-direction: column;
@@ -219,115 +200,99 @@
   &__tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 8px;
+
     span {
-      font-size: 12px;
+      font-size: 13px;
       color: var(--color-text-muted);
-      opacity: 0.6;
+      opacity: 0.8;
     }
+  }
+
+  /* ЗАГЛУШКА ДЛЯ ТЕГОВ */
+  &__placeholder-tag {
+    font-style: italic;
+    opacity: 0.3 !important;
   }
 
   &__date {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     font-size: 12px;
     color: var(--color-text-muted);
     margin-left: auto;
+
     @include mobile {
       margin-left: 0;
     }
   }
 
   /* ========================================= */
-  /* === МАГИЯ HOVER (animated sequence) ===== */
+  /* === ЛОГИКА ХОВЕРА (ТОЛЬКО ДЕСКТОП) ====== */
   /* ========================================= */
 
-  /* Десктопное поведение: вся анимированная цепочка */
   @include tablet-above {
     &:hover {
       border-color: var(--color-border-strong);
       background: var(--color-surface-2);
       box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
 
-      /* animated slide Down content sequence */
-      .task-item__view-compact {
-        display: none;
+      /* 1. Плавное смещение названия правее + увеличение и подсветка */
+      .task-item__title {
+        color: var(--color-accent-primary);
+        font-weight: 700;
+        /* Смещаем на 40px вправо и чуть увеличиваем размер */
+        transform: translateX(40px) scale(1.05);
       }
 
-      .task-item__view-expanded {
-        display: flex;
-        animation: slideDownFadeIn 0.3s ease-out forwards;
+      /* 2. Мини-бэйджи исчезают */
+      .task-item__mini-badges {
+        opacity: 0;
+        max-width: 0;
+        gap: 0;
       }
 
-      /* Последовательность анимации для деталей */
-
-      // 1. Название уезжает в центр (translateX на глаз)
-      .task-item__title--animated {
-        animation: centerTitle 0.3s ease-out forwards;
-      }
-
-      // 2. Спустя 0.1s плавно выпадают бэйджи и описание
-      .task-item__view-details {
-        animation: slideDownFadeIn 0.3s 0.1s ease-out forwards;
-      }
-
-      // 3. Появляются кнопки действий Справа
+      /* 3. Кнопки действий */
       .task-item__actions {
-        animation: slideDownFadeIn 0.3s 0.2s ease-out forwards;
+        opacity: 1;
         pointer-events: auto;
       }
+
+      /* 4. Открытие контента */
+      .task-item__expanded {
+        grid-template-rows: 1fr;
+        margin-top: 12px;
+      }
     }
   }
 
-  /* На мобилках нет ховера, поэтому СРАЗУ показываем расширенный вид */
+  /* ========================================= */
+  /* === МОБИЛКИ (Без ховера, всегда открыто) == */
+  /* ========================================= */
+
   @include tablet {
-    .task-item__view-compact {
-      display: none !important;
+    .task-item__mini-badges {
+      display: none;
     }
-
-    .task-item__view-expanded {
-      display: flex !important;
-      opacity: 1;
-
-      .task-item__title--animated {
-        transform: translateX(0); /* Без смещения в центр на мобилках */
-        color: var(--color-accent-primary);
-        text-align: left;
-      }
-
-      .task-item__view-details {
-        opacity: 1;
-      }
-    }
-
     .task-item__actions {
-      opacity: 1 !important;
-      pointer-events: auto !important;
-    }
-  }
-
-  /* === АНИМАЦИИ === */
-  @keyframes slideDownFadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-    to {
       opacity: 1;
-      transform: translateY(0);
+      pointer-events: auto;
     }
-  }
 
-  @keyframes centerTitle {
-    from {
-      transform: translateX(0);
-    }
-    to {
-      transform: translateX(
-        calc(50vw - 50% - 16px - 10px - 20px)
-      ); // Adjust translateX to center.
+    .task-item__title {
       color: var(--color-accent-primary);
+      font-weight: 700;
+      white-space: normal;
+    }
+
+    .task-item__expanded {
+      grid-template-rows: 1fr;
+      margin-top: 16px;
+    }
+
+    .task-item__full-badges {
+      justify-content: flex-start;
     }
   }
 }

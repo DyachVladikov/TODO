@@ -25,7 +25,7 @@ async function Start() {
       )
       .then(() => {
         console.log("DB Connected");
-        app.listen(3002, () => console.log("Server running on 3002"));
+        app.listen(Port, () => console.log("Server running on 3002"));
       });
     app.use("/api", AuthRoutes);
     app.use("/api", TodoRoutes);

@@ -2,47 +2,41 @@ import "./Auth.scss";
 import AuthForm from "@/components/AuthForm";
 import AuthDeco from "@/components/AuthDeco";
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // 1. Импортируем хук
 import { useTelegramAuth } from "@/hooks/useApi";
 
 const Auth = () => {
+  const navigate = useNavigate();
   const { mutate: telegramLogin, isPending: isTelegramLoading } =
     useTelegramAuth();
 
+  // 3. Дополнительно проверяем наличие токена при загрузке страницы
   useEffect(() => {
-    // Получаем объект Телеграма
+    if (localStorage.getItem("token")) {
+      navigate("/home");
+    }
+  }, [navigate]);
+
+  useEffect(() => {
     const tg = window.Telegram?.WebApp;
-    tg?.ready(); // Говорим Телеграму, что приложение готово и можно его красиво показать
+    tg?.ready();
 
     const tgUser = tg?.initDataUnsafe?.user;
 
-    // ВАЖНО: Делаем запрос только если мы в ТГ и у нас ЕЩЕ НЕТ токена,
-    // чтобы не спамить бэкенд при каждом обновлении страницы
     if (tgUser && !localStorage.getItem("token")) {
-      telegramLogin({
-        telegramId: String(tgUser.id),
-        first_name: tgUser.first_name,
-        username: tgUser.username,
-      });
+      telegramLogin(
+        {
+          telegramId: String(tgUser.id),
+          first_name: tgUser.first_name,
+          username: tgUser.username,
+        },
+        {
+          // 4. Отрабатываем успех внутри мутации
+          onSuccess: () => navigate("/home"),
+        },
+      );
     }
-  }, [telegramLogin]);
-
-  // Пока идет автоматический вход через ТГ, можем показать красивый экран загрузки
-  // (чтобы юзер не успел увидеть форму с логином и паролем)
-  if (isTelegramLoading) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          color: "var(--color-accent-primary)",
-        }}
-      >
-        <h2>Заходим через Telegram...</h2>
-      </div>
-    );
-  }
+  }, [telegramLogin, navigate]);
 
   return (
     <div className="auth">

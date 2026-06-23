@@ -1,13 +1,27 @@
 import "@/styles/globals.scss";
 import { Outlet } from "react-router-dom";
 import Content from "@/layouts/Content";
-import { TransitionProvider, usePageTransition } from "@/context/TransitionContext";
+import {
+  TransitionProvider,
+  usePageTransition,
+} from "@/context/TransitionContext";
+
+declare global {
+  interface Window {
+    Telegram: any;
+  }
+}
 
 const AppInner = () => {
   const { isTransitioning } = usePageTransition();
   return (
     <Content>
-      <div style={{ opacity: isTransitioning ? 0 : 1, transition: "opacity 0.3s ease" }}>
+      <div
+        style={{
+          opacity: isTransitioning ? 0 : 1,
+          transition: "opacity 0.3s ease",
+        }}
+      >
         <Outlet />
       </div>
     </Content>

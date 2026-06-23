@@ -29,6 +29,22 @@ export const useLogin = () => {
   });
 };
 
+export const useTelegramAuth = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: {
+      telegramId: string;
+      first_name?: string;
+      username?: string;
+    }) => api.post<AuthResponse>("/auth/telegram", payload),
+    onSuccess: ({ token }) => {
+      localStorage.setItem("token", token);
+      queryClient.invalidateQueries({ queryKey: ["me"] });
+    },
+  });
+};
+
 export const useMe = () => {
   return useQuery({
     queryKey: ["me"],

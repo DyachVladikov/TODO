@@ -2,16 +2,15 @@ import mongoose from "mongoose";
 
 const UsersSchema = new mongoose.Schema(
   {
+    telegramId: { type: String, unique: true, sparse: true },
     login: {
       type: String,
-      required: true,
       unique: true,
       trim: true,
       maxlength: 100,
     },
     password: {
       type: String,
-      required: true,
       trim: true,
       maxlength: 100,
     },

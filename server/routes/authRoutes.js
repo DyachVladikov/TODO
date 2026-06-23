@@ -1,5 +1,10 @@
 import express from "express";
-import { registration, authorization, getMe } from "../controllers/users.js";
+import {
+  registration,
+  authorization,
+  getMe,
+  telegramAuth,
+} from "../controllers/users.js";
 import { authMiddleware } from "../middleware/auth.js";
 
 const Routes = new express.Router();
@@ -7,5 +12,6 @@ const Routes = new express.Router();
 Routes.post("/auth/registration", registration);
 Routes.post("/auth/login", authorization);
 Routes.get("/auth/me", authMiddleware, getMe);
+Routes.post("/auth/telegram", telegramAuth);
 
 export default Routes;

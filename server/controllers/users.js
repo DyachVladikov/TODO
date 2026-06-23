@@ -84,3 +84,38 @@ export const getMe = async (req, res) => {
       .json({ message: "Server error", error: error.message });
   }
 };
+export const telegramAuth = async (req, res) => {
+  try {
+    // Получаем данные, которые пришлет React
+    const { telegramId, first_name, username } = req.body;
+
+    if (!telegramId) {
+      return res.status(400).json({ message: "Нет данных Telegram" });
+    }
+
+    // 1. Ищем пользователя в базе
+    let user = await User.findOne({ telegramId });
+
+    // 2. Если его нет — создаем автоматически
+    if (!user) {
+      user = new User({
+        telegramId: String(telegramId), // На всякий случай переводим в строку
+        name: first_name || username || "Пользователь ТГ",
+      });
+      await user.save();
+    }
+
+    // 3. Генерируем точно такой же токен, как при обычном логине
+    const token = jwt.sign(
+      { _id: user._id }, // Убедись, что тут '_id' или 'id' — как у тебя в обычном логине
+      process.env.JWT_SECRET,
+      { expiresIn: "30d" },
+    );
+
+    // 4. Отвечаем фронтенду
+    res.json({ token, user, message: "Успешный вход через Telegram" });
+  } catch (error) {
+    console.error("Ошибка TG Auth:", error);
+    res.status(500).json({ message: "Ошибка авторизации через Telegram" });
+  }
+};

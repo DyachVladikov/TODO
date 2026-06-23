@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import "./AuthForm.scss";
 import { useLogin, useRegistration } from "@/hooks/useApi";
 import { usePageTransition } from "@/context/TransitionContext";
@@ -40,28 +40,10 @@ const AuthForm = () => {
     setLogin("");
     setPassword("");
   };
-  const tg = window.Telegram?.WebApp;
-  const user = tg.initDataUnsafe.user;
-  useEffect(() => {
-    // Сообщаем Телеграму, что наше приложение готово к отрисовке
-    tg?.ready();
-
-    // Проверяем, открыт ли сайт внутри Телеграма и есть ли данные юзера
-    if (tg?.initDataUnsafe?.user) {
-      console.log("Ого, мы в Телеграме! Привет:", user.first_name);
-      console.log("Телеграм ID:", user.id);
-      console.log("Юзернейм:", user.username);
-    } else {
-      console.log("Открыто в обычном браузере, Телеграма тут нет.");
-    }
-  }, []);
-
   return (
     <>
       <div className="auth-form">
-        <h1 className="auth-form__title">
-          {isLogin ? `Вход ${user?.first_name}` : "Регистрация"}
-        </h1>
+        <h1 className="auth-form__title">{isLogin ? `Вход` : "Регистрация"}</h1>
         <p className="auth-form__subtitle">
           {isLogin ? "Рады видеть тебя снова" : "Создай свой аккаунт"}
         </p>

@@ -36,3 +36,5 @@ async function Start() {
 }
 
 Start();
+
+export default app;

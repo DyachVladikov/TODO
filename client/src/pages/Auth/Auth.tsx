@@ -15,6 +15,7 @@ const Auth = () => {
     if (localStorage.getItem("token")) {
       navigate("/home");
     }
+    console.log(isTelegramLoading);
   }, [navigate]);
 
   useEffect(() => {

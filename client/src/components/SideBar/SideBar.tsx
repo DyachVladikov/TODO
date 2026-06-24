@@ -138,6 +138,13 @@ const Sidebar = ({ activeFilter, setActiveFilter }: SidebarProps) => {
             )}
           </select>
         </div>
+        <button
+          className="sidebar__item sidebar__item--mobile-logout"
+          onClick={logout}
+          title="Выйти"
+        >
+          <LogOut size={18} />
+        </button>
       </nav>
 
       <div className="sidebar__projects">

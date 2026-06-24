@@ -79,66 +79,14 @@ const Auth = () => {
     <div className="auth">
       <div className="auth__form-col">
         <AuthForm />
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            marginTop: "24px",
-            gap: "16px",
-            width: "100%",
-            maxWidth: "400px",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              width: "100%",
-              gap: "12px",
-            }}
-          >
-            <div
-              style={{
-                flex: 1,
-                height: "1px",
-                background: "var(--color-border-subtle)",
-              }}
-            ></div>
-            <span
-              style={{ color: "var(--color-text-muted)", fontSize: "14px" }}
-            >
-              или
-            </span>
-            <div
-              style={{
-                flex: 1,
-                height: "1px",
-                background: "var(--color-border-subtle)",
-              }}
-            ></div>
+        <div className="auth__qr-section">
+          <div className="auth__divider">
+            <span>или</span>
           </div>
 
           <button
+            className="auth__qr-btn"
             onClick={() => setIsQrModalOpen(true)}
-            style={{
-              width: "100%",
-              padding: "12px",
-              borderRadius: "8px",
-              backgroundColor: "#2AABEE",
-              color: "white",
-              border: "none",
-              fontSize: "16px",
-              fontWeight: "600",
-              cursor: "pointer",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              gap: "8px",
-              transition: "opacity 0.2s",
-            }}
-            onMouseOver={(e) => (e.currentTarget.style.opacity = "0.9")}
-            onMouseOut={(e) => (e.currentTarget.style.opacity = "1")}
           >
             Войти по QR-коду
           </button>

@@ -66,3 +66,65 @@
     grid-template-rows: 1fr;
   }
 }
+.auth__qr-section {
+  width: 100%;
+  max-width: 400px; /* Должно совпадать с шириной твоей формы AuthForm */
+  margin: 24px auto 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 0 16px; /* Чтобы на мобилке не прилипало к краям экрана */
+  box-sizing: border-box;
+
+  .auth__divider {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 16px;
+
+    &::before,
+    &::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--color-border-subtle);
+    }
+
+    span {
+      color: var(--color-text-muted);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+  }
+
+  .auth__qr-btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    background: var(--color-surface-2); /* Темный фон, как у инпутов */
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border-subtle);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: var(--color-surface-3);
+      border-color: var(
+        --color-accent-primary
+      ); /* При наведении рамка загорается фиолетовым */
+      transform: translateY(-2px);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+}

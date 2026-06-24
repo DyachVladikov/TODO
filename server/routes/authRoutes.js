@@ -4,6 +4,9 @@ import {
   authorization,
   getMe,
   telegramAuth,
+  generateQrSession,
+  checkQrStatus,
+  telegramWebhook,
 } from "../controllers/users.js";
 import { authMiddleware } from "../middleware/auth.js";
 

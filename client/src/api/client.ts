@@ -20,6 +20,12 @@ const request = async <T>(
 
   const data = await res.json();
 
+  if (res.status === 401) {
+    localStorage.removeItem("token");
+    window.location.href = "/";
+    throw new Error("Не авторизован");
+  }
+
   if (!res.ok) {
     throw new Error(data.message ?? "Request failed");
   }

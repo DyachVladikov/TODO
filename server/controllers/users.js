@@ -85,6 +85,7 @@ export const getMe = async (req, res) => {
       .json({ message: "Server error", error: error.message });
   }
 };
+
 export const telegramAuth = async (req, res) => {
   try {
     const { telegramId, first_name, username } = req.body;
@@ -93,19 +94,21 @@ export const telegramAuth = async (req, res) => {
       return res.status(400).json({ message: "Нет данных Telegram" });
     }
 
-    // 1. Исправлено User на Users (как в твоем импорте)
-    let user = await Users.findOne({ telegramId });
-
-    // 2. Если его нет — создаем автоматически
-    if (!user) {
-      user = new Users({
+    // === МАГИЯ UPSERT ===
+    // Ищем юзера. Если нет (удалили или новый) - создаем.
+    const user = await Users.findOneAndUpdate(
+      { telegramId: String(telegramId) }, // Кого ищем
+      {
         telegramId: String(telegramId),
         name: first_name || username || "Пользователь ТГ",
-      });
-      await user.save();
-    }
+      }, // Что записываем
+      {
+        new: true, // Вернуть обновленный документ
+        upsert: true, // Создать, если не найден!
+        setDefaultsOnInsert: true,
+      },
+    );
 
-    // 3. Исправлено _id на id (как в функции registration)
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
       expiresIn: "30d",
     });
@@ -116,6 +119,7 @@ export const telegramAuth = async (req, res) => {
     res.status(500).json({ message: "Ошибка авторизации через Telegram" });
   }
 };
+
 export const generateQrSession = async (req, res) => {
   try {
     const sessionId = crypto.randomUUID();
@@ -151,50 +155,51 @@ export const checkQrStatus = async (req, res) => {
     res.status(500).json({ message: "Ошибка проверки статуса" });
   }
 };
+
 export const telegramWebhook = async (req, res) => {
   try {
     const { message } = req.body;
 
-    // Проверяем, что это текстовое сообщение и оно начинается с /start
     if (message && message.text && message.text.startsWith("/start")) {
-      const text = message.text; // Будет выглядеть как "/start login_UUID"
+      const text = message.text;
       const telegramId = String(message.from.id);
       const first_name = message.from.first_name;
       const username = message.from.username;
 
-      // Проверяем, что в команде старта есть наш маркер сессии
       if (text.includes("login_")) {
         const sessionId = text.split("login_")[1];
 
-        // 1. Ищем или создаем пользователя в бд (как мы делали раньше)
-        let user = await Users.findOne({ telegramId });
-        if (!user) {
-          user = new Users({
-            telegramId,
+        // === МАГИЯ UPSERT ДЛЯ ВЕБХУКА ===
+        const user = await Users.findOneAndUpdate(
+          { telegramId: telegramId },
+          {
+            telegramId: telegramId,
             name: first_name || username || "Пользователь ТГ",
-          });
-          await user.save();
-        }
+          },
+          {
+            new: true,
+            upsert: true,
+            setDefaultsOnInsert: true,
+          },
+        );
 
-        // 2. Генерируем полноценный JWT-токен для этого юзера
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
           expiresIn: "7d",
         });
 
-        // 3. Находим временную сессию ПК-браузера и обновляем её
         const session = await QrSession.findOne({
           sessionId,
           status: "pending",
         });
+
         if (session) {
           session.status = "completed";
-          session.token = token; // Записываем токен в сессию, чтобы фронтенд его забрал
+          session.token = token;
           await session.save();
         }
       }
     }
 
-    // Телеграму ВСЕГДА нужно возвращать 200 OK, иначе он будет бесконечно спамить повторами
     return res.status(200).send("OK");
   } catch (error) {
     console.error("Ошибка вебхука:", error);

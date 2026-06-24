@@ -3,9 +3,15 @@ import mongoose from "mongoose";
 const UsersSchema = new mongoose.Schema(
   {
     telegramId: { type: String, unique: true, sparse: true },
+    // ДОБАВЛЕН name, чтобы сохранять имя из ТГ
+    name: {
+      type: String,
+      trim: true,
+    },
     login: {
       type: String,
       unique: true,
+      sparse: true,
       trim: true,
       maxlength: 100,
     },
@@ -20,7 +26,6 @@ const UsersSchema = new mongoose.Schema(
   },
 );
 
-// Виртуальное поле — получить все задачи пользователя через populate
 UsersSchema.virtual("todos", {
   ref: "Todo",
   localField: "_id",

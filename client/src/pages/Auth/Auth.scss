@@ -9,6 +9,7 @@
     &-col {
       display: flex;
       align-items: center;
+      flex-direction: column;
       justify-content: center;
       padding: fluid(80, 24);
       background: var(--color-back-ground);

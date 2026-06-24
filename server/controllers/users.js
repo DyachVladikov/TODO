@@ -125,6 +125,7 @@ export const generateQrSession = async (req, res) => {
 
     res.json({ sessionId });
   } catch (error) {
+    console.error("ОШИБКА QR:", error);
     res.status(500).json({ message: "Ошибка генерации QR" });
   }
 };
@@ -146,6 +147,7 @@ export const checkQrStatus = async (req, res) => {
 
     res.json({ status: "pending" });
   } catch (error) {
+    console.error("ОШИБКА QR:", error);
     res.status(500).json({ message: "Ошибка проверки статуса" });
   }
 };

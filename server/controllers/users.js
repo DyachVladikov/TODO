@@ -115,3 +115,86 @@ export const telegramAuth = async (req, res) => {
     res.status(500).json({ message: "Ошибка авторизации через Telegram" });
   }
 };
+export const generateQrSession = async (req, res) => {
+  try {
+    const sessionId = crypto.randomUUID();
+
+    const newSession = new QrSession({ sessionId });
+    await newSession.save();
+
+    res.json({ sessionId });
+  } catch (error) {
+    res.status(500).json({ message: "Ошибка генерации QR" });
+  }
+};
+
+export const checkQrStatus = async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const session = await QrSession.findOne({ sessionId });
+
+    if (!session) {
+      return res
+        .status(404)
+        .json({ status: "expired", message: "Сессия истекла" });
+    }
+
+    if (session.status === "completed") {
+      return res.json({ status: "completed", token: session.token });
+    }
+
+    res.json({ status: "pending" });
+  } catch (error) {
+    res.status(500).json({ message: "Ошибка проверки статуса" });
+  }
+};
+export const telegramWebhook = async (req, res) => {
+  try {
+    const { message } = req.body;
+
+    // Проверяем, что это текстовое сообщение и оно начинается с /start
+    if (message && message.text && message.text.startsWith("/start")) {
+      const text = message.text; // Будет выглядеть как "/start login_UUID"
+      const telegramId = String(message.from.id);
+      const first_name = message.from.first_name;
+      const username = message.from.username;
+
+      // Проверяем, что в команде старта есть наш маркер сессии
+      if (text.includes("login_")) {
+        const sessionId = text.split("login_")[1];
+
+        // 1. Ищем или создаем пользователя в бд (как мы делали раньше)
+        let user = await Users.findOne({ telegramId });
+        if (!user) {
+          user = new Users({
+            telegramId,
+            name: first_name || username || "Пользователь ТГ",
+          });
+          await user.save();
+        }
+
+        // 2. Генерируем полноценный JWT-токен для этого юзера
+        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+          expiresIn: "7d",
+        });
+
+        // 3. Находим временную сессию ПК-браузера и обновляем её
+        const session = await QrSession.findOne({
+          sessionId,
+          status: "pending",
+        });
+        if (session) {
+          session.status = "completed";
+          session.token = token; // Записываем токен в сессию, чтобы фронтенд его забрал
+          await session.save();
+        }
+      }
+    }
+
+    // Телеграму ВСЕГДА нужно возвращать 200 OK, иначе он будет бесконечно спамить повторами
+    return res.status(200).send("OK");
+  } catch (error) {
+    console.error("Ошибка вебхука:", error);
+    return res.status(200).send("OK");
+  }
+};

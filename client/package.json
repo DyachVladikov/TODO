@@ -15,6 +15,7 @@
     "classnames": "^2.5.1",
     "lucide-react": "^1.21.0",
     "postcss-pxtorem": "^6.1.0",
+    "qrcode.react": "^4.2.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-router-dom": "^7.17.0",

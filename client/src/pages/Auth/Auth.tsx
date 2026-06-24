@@ -78,8 +78,31 @@ const Auth = () => {
     );
   }
 
+  const handleForceLogout = () => {
+    localStorage.removeItem("token");
+    window.location.reload(); // Перезагрузит страницу с чистым localStorage
+  };
+
   return (
-    <div className="auth">
+    <div className="auth" style={{ position: "relative" }}>
+      {/* Кнопка будет висеть в самом верху экрана */}
+      <button
+        onClick={handleForceLogout}
+        style={{
+          position: "absolute",
+          top: 10,
+          left: 10,
+          zIndex: 9999,
+          padding: "5px 10px",
+          background: "red",
+          color: "white",
+          border: "none",
+          borderRadius: "4px",
+        }}
+      >
+        ⚠️ Сбросить токен
+      </button>
+
       <div className="auth__form-col">
         <AuthForm />
       </div>
@@ -88,6 +111,17 @@ const Auth = () => {
       </div>
     </div>
   );
+
+  /* return (
+    <div className="auth">
+      <div className="auth__form-col">
+        <AuthForm />
+      </div>
+      <div className="auth__deco-col">
+        <AuthDeco />
+      </div>
+    </div>
+  ); */
 };
 
 export default Auth;

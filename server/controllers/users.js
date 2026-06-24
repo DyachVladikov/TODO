@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import Users from "../models/Users.js";
+import QrSession from "../models/QrSession.js";
 
 export const registration = async (req, res) => {
   try {

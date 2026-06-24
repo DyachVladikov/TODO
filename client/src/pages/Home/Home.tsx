@@ -3,6 +3,7 @@ import Sidebar from "@/components/SideBar";
 import TaskBoard from "@/components/TaskBoard/TaskBoard";
 import TaskDetails from "@/components/TaskDetails/TaskDetails";
 import CreateTaskModal from "@/components/CreateTaskModal/CreateTaskModal";
+import Loader from "@/components/Loader";
 import type { TaskPayload } from "@/api/types";
 import {
   useTasks,
@@ -43,7 +44,7 @@ const Home = () => {
   };
 
   if (isLoading) {
-    return <div className="home-loading">Загрузка...</div>;
+    return <Loader />;
   }
 
   return (

@@ -94,18 +94,24 @@ export const telegramAuth = async (req, res) => {
       return res.status(400).json({ message: "Нет данных Telegram" });
     }
 
-    // === МАГИЯ UPSERT ===
-    // Ищем юзера. Если нет (удалили или новый) - создаем.
+    // === УЛУЧШЕННЫЙ UPSERT ===
     const user = await Users.findOneAndUpdate(
-      { telegramId: String(telegramId) }, // Кого ищем
+      { telegramId: String(telegramId) },
       {
-        telegramId: String(telegramId),
-        name: first_name || username || "Пользователь ТГ",
-      }, // Что записываем
+        // $set обновляет эти поля всегда
+        $set: {
+          telegramId: String(telegramId),
+          name: first_name || username || "Пользователь ТГ",
+        },
+        // $setOnInsert срабатывает ТОЛЬКО при создании нового юзера
+        $setOnInsert: {
+          login: `tg_${telegramId}`, // Уникальный фейковый логин
+          password: `tg_pass_${Date.now()}`, // Фейковый пароль-заглушка
+        },
+      },
       {
-        new: true, // Вернуть обновленный документ
-        upsert: true, // Создать, если не найден!
-        setDefaultsOnInsert: true,
+        new: true,
+        upsert: true,
       },
     );
 
@@ -116,7 +122,13 @@ export const telegramAuth = async (req, res) => {
     res.json({ token, user, message: "Успешный вход через Telegram" });
   } catch (error) {
     console.error("Ошибка TG Auth:", error);
-    res.status(500).json({ message: "Ошибка авторизации через Telegram" });
+    // Теперь передаем реальную ошибку базы на фронт для отладки
+    res
+      .status(500)
+      .json({
+        message: "Ошибка авторизации через Telegram",
+        details: error.message,
+      });
   }
 };
 
@@ -169,17 +181,22 @@ export const telegramWebhook = async (req, res) => {
       if (text.includes("login_")) {
         const sessionId = text.split("login_")[1];
 
-        // === МАГИЯ UPSERT ДЛЯ ВЕБХУКА ===
+        // === УЛУЧШЕННЫЙ UPSERT ДЛЯ ВЕБХУКА ===
         const user = await Users.findOneAndUpdate(
           { telegramId: telegramId },
           {
-            telegramId: telegramId,
-            name: first_name || username || "Пользователь ТГ",
+            $set: {
+              telegramId: telegramId,
+              name: first_name || username || "Пользователь ТГ",
+            },
+            $setOnInsert: {
+              login: `tg_${telegramId}`,
+              password: `tg_pass_${Date.now()}`,
+            },
           },
           {
             new: true,
             upsert: true,
-            setDefaultsOnInsert: true,
           },
         );
 

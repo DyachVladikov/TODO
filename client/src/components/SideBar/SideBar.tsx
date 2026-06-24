@@ -23,6 +23,7 @@ const Sidebar = ({ activeFilter, setActiveFilter }: SidebarProps) => {
   const { data: tasks = [] } = useTasks();
   const { folders, addFolder, deleteFolder, isAdding } = useFolders();
   const logout = useLogout();
+  const isTelegram = Boolean(window.Telegram?.WebApp?.initDataUnsafe?.user);
 
   const todayTasksCount = tasks.filter((task) => {
     if (!task.deadline || task.completed) return false;
@@ -138,13 +139,15 @@ const Sidebar = ({ activeFilter, setActiveFilter }: SidebarProps) => {
             )}
           </select>
         </div>
-        <button
-          className="sidebar__item sidebar__item--mobile-logout"
-          onClick={logout}
-          title="Выйти"
-        >
-          <LogOut size={18} />
-        </button>
+        {!isTelegram && (
+          <button
+            className="sidebar__item sidebar__item--mobile-logout"
+            onClick={logout}
+            title="Выйти"
+          >
+            <LogOut size={18} />
+          </button>
+        )}
       </nav>
 
       <div className="sidebar__projects">
@@ -192,15 +195,17 @@ const Sidebar = ({ activeFilter, setActiveFilter }: SidebarProps) => {
         </div>
       </div>
 
-      <div className="sidebar__footer">
-        <button
-          className="sidebar__item sidebar__item--logout"
-          onClick={logout}
-        >
-          <LogOut size={18} />
-          <span className="sidebar__text">Выйти</span>
-        </button>
-      </div>
+      {!isTelegram && (
+        <div className="sidebar__footer">
+          <button
+            className="sidebar__item sidebar__item--logout"
+            onClick={logout}
+          >
+            <LogOut size={18} />
+            <span className="sidebar__text">Выйти</span>
+          </button>
+        </div>
+      )}
     </aside>
   );
 };

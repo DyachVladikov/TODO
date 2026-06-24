@@ -1,10 +1,10 @@
 import "./Auth.scss";
 import AuthForm from "@/components/AuthForm";
 import AuthDeco from "@/components/AuthDeco";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTelegramAuth } from "@/hooks/useApi";
 import { usePageTransition } from "@/context/TransitionContext";
-import TelegramLoginButton from "@/components/TelegramLoginButton"; // ИМПОРТ КНОПКИ
+import QrLoginModal from "@/components/QrLoginModal";
 
 const Auth = () => {
   const { startTransition } = usePageTransition();
@@ -14,7 +14,9 @@ const Auth = () => {
     isError,
   } = useTelegramAuth();
 
-  // 1. ЭТО СРАБОТАЕТ, ЕСЛИ МЫ ОТКРЫЛИ ПРИЛОЖЕНИЕ ВНУТРИ ТЕЛЕГРАМА (Мобилка)
+  // Состояние для управления видимостью модального окна
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+
   useEffect(() => {
     if (localStorage.getItem("token")) {
       startTransition("/home");
@@ -41,19 +43,11 @@ const Auth = () => {
     }
   }, [telegramLogin, startTransition]);
 
-  // 2. ЭТО СРАБОТАЕТ, ЕСЛИ ЮЗЕР НАЖАЛ КНОПКУ ТГ В ОБЫЧНОМ БРАУЗЕРЕ (Десктоп)
-  const handleWebTelegramLogin = (user: any) => {
-    telegramLogin(
-      {
-        telegramId: String(user.id),
-        first_name: user.first_name,
-        username: user.username,
-      },
-      {
-        onSuccess: () => startTransition("/home"),
-        onError: (err: any) => console.error("Ошибка TG Web:", err),
-      },
-    );
+  const handleQrSuccess = (token: string) => {
+    // Сохраняем токен, который выдал бэкенд после сканирования
+    localStorage.setItem("token", token);
+    setIsQrModalOpen(false); // Закрываем модалку
+    startTransition("/home"); // Летим к задачам
   };
 
   if (isError) {
@@ -91,21 +85,76 @@ const Auth = () => {
             flexDirection: "column",
             alignItems: "center",
             marginTop: "24px",
-            gap: "12px",
+            gap: "16px",
+            width: "100%",
+            maxWidth: "400px",
           }}
         >
-          <span style={{ color: "var(--color-text-muted)", fontSize: "14px" }}>
-            Или войдите через Telegram
-          </span>
-          <TelegramLoginButton
-            botName="do_now_manager_bot"
-            onAuth={handleWebTelegramLogin}
-          />
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              width: "100%",
+              gap: "12px",
+            }}
+          >
+            <div
+              style={{
+                flex: 1,
+                height: "1px",
+                background: "var(--color-border-subtle)",
+              }}
+            ></div>
+            <span
+              style={{ color: "var(--color-text-muted)", fontSize: "14px" }}
+            >
+              или
+            </span>
+            <div
+              style={{
+                flex: 1,
+                height: "1px",
+                background: "var(--color-border-subtle)",
+              }}
+            ></div>
+          </div>
+
+          <button
+            onClick={() => setIsQrModalOpen(true)}
+            style={{
+              width: "100%",
+              padding: "12px",
+              borderRadius: "8px",
+              backgroundColor: "#2AABEE",
+              color: "white",
+              border: "none",
+              fontSize: "16px",
+              fontWeight: "600",
+              cursor: "pointer",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: "8px",
+              transition: "opacity 0.2s",
+            }}
+            onMouseOver={(e) => (e.currentTarget.style.opacity = "0.9")}
+            onMouseOut={(e) => (e.currentTarget.style.opacity = "1")}
+          >
+            Войти по QR-коду
+          </button>
         </div>
       </div>
       <div className="auth__deco-col">
         <AuthDeco />
       </div>
+
+      {isQrModalOpen && (
+        <QrLoginModal
+          botUsername="do_now_manager_bot"
+          onClose={() => setIsQrModalOpen(false)}
+          onSuccess={handleQrSuccess}
+        />
+      )}
     </div>
   );
 };

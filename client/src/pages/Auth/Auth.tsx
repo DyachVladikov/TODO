@@ -18,10 +18,10 @@ const Auth = () => {
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
 
   useEffect(() => {
-    if (localStorage.getItem("token")) {
+    /* if (localStorage.getItem("token")) {
       startTransition("/home");
       return;
-    }
+    } */
 
     const tg = window.Telegram?.WebApp;
     tg?.ready();

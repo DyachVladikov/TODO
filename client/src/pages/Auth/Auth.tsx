@@ -1,32 +1,35 @@
 import "./Auth.scss";
 import AuthForm from "@/components/AuthForm";
 import AuthDeco from "@/components/AuthDeco";
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom"; // 1. Импортируем хук
+import { useEffect, useState } from "react";
+// useNavigate удален!
 import { useTelegramAuth } from "@/hooks/useApi";
 import { usePageTransition } from "@/context/TransitionContext";
 
 const Auth = () => {
-  const navigate = useNavigate();
   const { startTransition } = usePageTransition();
-  const { mutate: telegramLogin, isPending: isTelegramLoading } =
-    useTelegramAuth();
+  const {
+    mutate: telegramLogin,
+    isPending: isTelegramLoading,
+    error,
+    isError,
+  } = useTelegramAuth();
 
-  // 3. Дополнительно проверяем наличие токена при загрузке страницы
+  const [debugMsg, setDebugMsg] = useState("Ждем Telegram...");
+
   useEffect(() => {
     if (localStorage.getItem("token")) {
       startTransition("/home");
+      return;
     }
-    console.log(isTelegramLoading);
-  }, [navigate]);
 
-  useEffect(() => {
     const tg = window.Telegram?.WebApp;
     tg?.ready();
 
     const tgUser = tg?.initDataUnsafe?.user;
 
-    if (tgUser && !localStorage.getItem("token")) {
+    if (tgUser) {
+      setDebugMsg(`Телеграм найден! ID: ${tgUser.id}. Отправляем запрос...`);
       telegramLogin(
         {
           telegramId: String(tgUser.id),
@@ -34,12 +37,47 @@ const Auth = () => {
           username: tgUser.username,
         },
         {
-          // 4. Отрабатываем успех внутри мутации
-          onSuccess: () => startTransition("/home"),
+          onSuccess: () => {
+            setDebugMsg("Успех! Переходим...");
+            startTransition("/home");
+          },
+          onError: (err: any) => {
+            setDebugMsg(
+              `Бэкенд вернул ошибку: ${err?.message || "Неизвестная ошибка"}`,
+            );
+          },
         },
       );
+    } else {
+      setDebugMsg("Телеграм не найден, показываем обычный вход.");
     }
-  }, [telegramLogin, navigate]);
+  }, [telegramLogin, startTransition]); // Обновили зависимости
+
+  if (isError) {
+    return (
+      <div style={{ padding: "20px", color: "red", textAlign: "center" }}>
+        <h2>❌ Ошибка входа через ТГ</h2>
+        <p>{debugMsg}</p>
+        <p>Иди в логи Vercel (Сервер) и смотри причину!</p>
+      </div>
+    );
+  }
+
+  if (isTelegramLoading || debugMsg.includes("Отправляем")) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          color: "var(--color-accent-primary)",
+        }}
+      >
+        <h2>{debugMsg}</h2>
+      </div>
+    );
+  }
 
   return (
     <div className="auth">

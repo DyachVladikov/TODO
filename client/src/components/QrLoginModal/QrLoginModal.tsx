@@ -117,8 +117,13 @@ const QrLoginModal = ({
               display: "inline-block",
             }}
           >
-            {/* Отрисовка самого QR-кода */}
-            <QRCodeSVG value={telegramLink} size={200} />
+            <QRCodeSVG
+              value={telegramLink}
+              size={200}
+              fgColor="#000000"
+              bgColor="#FFFFFF"
+              style={{ display: "block", color: "black" }}
+            />
           </div>
         )}
       </div>

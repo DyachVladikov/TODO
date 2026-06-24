@@ -17,10 +17,10 @@ const Auth = () => {
   const [debugMsg, setDebugMsg] = useState("Ждем Telegram...");
 
   useEffect(() => {
-    if (localStorage.getItem("token")) {
+    /* if (localStorage.getItem("token")) {
       startTransition("/home");
       return;
-    }
+    } */
 
     const tg = window.Telegram?.WebApp;
     tg?.ready();

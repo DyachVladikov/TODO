@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { QRCodeSVG } from "qrcode.react";
+import { QRCodeCanvas } from "qrcode.react";
 import { X } from "lucide-react"; // Используем иконку крестика, она у тебя уже есть
 
 interface QrLoginModalProps {
@@ -117,12 +117,11 @@ const QrLoginModal = ({
               display: "inline-block",
             }}
           >
-            <QRCodeSVG
+            <QRCodeCanvas
               value={telegramLink}
               size={200}
               fgColor="#000000"
               bgColor="#FFFFFF"
-              style={{ display: "block", color: "black" }}
             />
           </div>
         )}

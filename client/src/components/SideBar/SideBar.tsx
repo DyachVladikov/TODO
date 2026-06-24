@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Inbox,
   Calendar,
@@ -8,6 +9,7 @@ import {
   Plus,
   LogOut,
   X,
+  Menu, // Добавили иконку бургера
 } from "lucide-react";
 import { useTasks } from "@/hooks/useTasks";
 import { useLogout } from "@/hooks/useApi";
@@ -20,6 +22,7 @@ interface SidebarProps {
 }
 
 const Sidebar = ({ activeFilter, setActiveFilter }: SidebarProps) => {
+  const [isMobileOpen, setIsMobileOpen] = useState(false); // Состояние для мобильного меню
   const { data: tasks = [] } = useTasks();
   const { folders, addFolder, deleteFolder, isAdding } = useFolders();
   const logout = useLogout();
@@ -55,158 +58,140 @@ const Sidebar = ({ activeFilter, setActiveFilter }: SidebarProps) => {
     }
   };
 
+  // Обертка для выбора фильтра, чтобы закрывать меню на мобилках
+  const handleFilterSelect = (filter: string) => {
+    setActiveFilter(filter);
+    setIsMobileOpen(false);
+  };
+
   const defaultProjects = [
     { id: "work", label: "Работа", color: "#3B82F6" },
     { id: "home", label: "Дом", color: "#10B981" },
     { id: "ideas", label: "Идеи", color: "#8B5CF6" },
   ];
 
-  const isFolderActive =
-    defaultProjects.some((p) => p.id === activeFilter) ||
-    folders.some((f) => f.id === activeFilter);
-
   return (
-    <aside className="sidebar">
-      <div className="sidebar__logo">
-        <CheckSquare size={24} className="sidebar__logo-icon" />
-        <span className="sidebar__text">TaskFlow</span>
-      </div>
+    <>
+      {/* Затемнение фона на мобилках при открытом меню */}
+      <div
+        className={`sidebar__overlay ${isMobileOpen ? "sidebar__overlay--active" : ""}`}
+        onClick={() => setIsMobileOpen(false)}
+      />
 
-      <nav className="sidebar__nav">
+      <aside
+        className={`sidebar ${isMobileOpen ? "sidebar--mobile-open" : ""}`}
+      >
+        {/* Кнопка бургера (видна только на мобилке) */}
         <button
-          className={`sidebar__item ${activeFilter === "all" ? "active" : ""}`}
-          onClick={() => setActiveFilter("all")}
+          className="sidebar__burger"
+          onClick={() => setIsMobileOpen(!isMobileOpen)}
         >
-          <Inbox size={18} />
-          <span className="sidebar__text">Все задачи</span>
+          {isMobileOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
 
-        <button
-          className={`sidebar__item ${activeFilter === "today" ? "active" : ""}`}
-          onClick={() => setActiveFilter("today")}
-        >
-          <Calendar size={18} />
-          <span className="sidebar__text">Сегодня</span>
-          {todayTasksCount > 0 && (
-            <span className="sidebar__badge">{todayTasksCount}</span>
-          )}
-        </button>
+        {/* Контент сайдбара (на десктопе всегда виден, на мобилке - внутри dropdown) */}
+        <div className="sidebar__content">
+          <div className="sidebar__logo">
+            <CheckSquare size={24} className="sidebar__logo-icon" />
+            <span className="sidebar__text">TaskFlow</span>
+          </div>
 
-        <button
-          className={`sidebar__item ${activeFilter === "important" ? "active" : ""}`}
-          onClick={() => setActiveFilter("important")}
-        >
-          <Star size={18} />
-          <span className="sidebar__text">Важные</span>
-        </button>
-
-        <button
-          className={`sidebar__item ${activeFilter === "completed" ? "active" : ""}`}
-          onClick={() => setActiveFilter("completed")}
-        >
-          <CheckCircle size={18} />
-          <span className="sidebar__text">Завершённые</span>
-        </button>
-
-        {/* МОБИЛЬНАЯ КНОПКА ПАПОК */}
-        <div
-          className={`sidebar__item sidebar__item--mobile-folder ${isFolderActive ? "active" : ""}`}
-        >
-          <FolderIcon size={18} />
-          <select
-            className="sidebar__mobile-native-select"
-            value={activeFilter}
-            onChange={(e) => setActiveFilter(e.target.value)}
-          >
-            <option value="none" disabled>
-              Выберите папку...
-            </option>
-            <optgroup label="Стандартные">
-              {defaultProjects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.label}
-                </option>
-              ))}
-            </optgroup>
-            {folders.length > 0 && (
-              <optgroup label="Мои папки">
-                {folders.map((f) => (
-                  <option key={f.id} value={f.id}>
-                    {f.name}
-                  </option>
-                ))}
-              </optgroup>
-            )}
-          </select>
-        </div>
-        {!isTelegram && (
-          <button
-            className="sidebar__item sidebar__item--mobile-logout"
-            onClick={logout}
-            title="Выйти"
-          >
-            <LogOut size={18} />
-          </button>
-        )}
-      </nav>
-
-      <div className="sidebar__projects">
-        <div className="sidebar__projects-header">
-          <h3 className="sidebar__text">ПРОЕКТЫ</h3>
-          <button
-            className="sidebar__projects-add"
-            onClick={handleAddFolder}
-            disabled={isAdding}
-            title="Создать папку"
-          >
-            <Plus size={16} />
-          </button>
-        </div>
-
-        <div className="sidebar__projects-list">
-          {defaultProjects.map((project) => (
+          <nav className="sidebar__nav">
             <button
-              key={project.id}
-              className={`sidebar__item sidebar__item--project ${activeFilter === project.id ? "active" : ""}`}
-              onClick={() => setActiveFilter(project.id)}
+              className={`sidebar__item ${activeFilter === "all" ? "active" : ""}`}
+              onClick={() => handleFilterSelect("all")}
             >
-              <FolderIcon size={18} style={{ color: project.color }} />
-              <span className="sidebar__text">{project.label}</span>
+              <Inbox size={18} />
+              <span className="sidebar__text">Все задачи</span>
             </button>
-          ))}
 
-          {folders.map((folder) => (
             <button
-              key={folder.id}
-              className={`sidebar__item sidebar__item--project ${activeFilter === folder.id ? "active" : ""}`}
-              onClick={() => setActiveFilter(folder.id)}
+              className={`sidebar__item ${activeFilter === "today" ? "active" : ""}`}
+              onClick={() => handleFilterSelect("today")}
             >
-              <FolderIcon size={18} style={{ color: "#FFFFFF" }} />
-              <span className="sidebar__text">{folder.name}</span>
-              <div
-                className="sidebar__folder-delete"
-                onClick={(e) => handleDeleteFolder(e, folder.id)}
-                title="Удалить папку"
+              <Calendar size={18} />
+              <span className="sidebar__text">Сегодня</span>
+              {todayTasksCount > 0 && (
+                <span className="sidebar__badge">{todayTasksCount}</span>
+              )}
+            </button>
+
+            <button
+              className={`sidebar__item ${activeFilter === "important" ? "active" : ""}`}
+              onClick={() => handleFilterSelect("important")}
+            >
+              <Star size={18} />
+              <span className="sidebar__text">Важные</span>
+            </button>
+
+            <button
+              className={`sidebar__item ${activeFilter === "completed" ? "active" : ""}`}
+              onClick={() => handleFilterSelect("completed")}
+            >
+              <CheckCircle size={18} />
+              <span className="sidebar__text">Завершённые</span>
+            </button>
+          </nav>
+
+          <div className="sidebar__projects">
+            <div className="sidebar__projects-header">
+              <h3 className="sidebar__text">ПРОЕКТЫ</h3>
+              <button
+                className="sidebar__projects-add"
+                onClick={handleAddFolder}
+                disabled={isAdding}
+                title="Создать папку"
               >
-                <X size={14} />
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
+                <Plus size={16} />
+              </button>
+            </div>
 
-      {!isTelegram && (
-        <div className="sidebar__footer">
-          <button
-            className="sidebar__item sidebar__item--logout"
-            onClick={logout}
-          >
-            <LogOut size={18} />
-            <span className="sidebar__text">Выйти</span>
-          </button>
+            <div className="sidebar__projects-list">
+              {defaultProjects.map((project) => (
+                <button
+                  key={project.id}
+                  className={`sidebar__item sidebar__item--project ${activeFilter === project.id ? "active" : ""}`}
+                  onClick={() => handleFilterSelect(project.id)}
+                >
+                  <FolderIcon size={18} style={{ color: project.color }} />
+                  <span className="sidebar__text">{project.label}</span>
+                </button>
+              ))}
+
+              {folders.map((folder) => (
+                <button
+                  key={folder.id}
+                  className={`sidebar__item sidebar__item--project ${activeFilter === folder.id ? "active" : ""}`}
+                  onClick={() => handleFilterSelect(folder.id)}
+                >
+                  <FolderIcon size={18} style={{ color: "#FFFFFF" }} />
+                  <span className="sidebar__text">{folder.name}</span>
+                  <div
+                    className="sidebar__folder-delete"
+                    onClick={(e) => handleDeleteFolder(e, folder.id)}
+                    title="Удалить папку"
+                  >
+                    <X size={14} />
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {!isTelegram && (
+            <div className="sidebar__footer">
+              <button
+                className="sidebar__item sidebar__item--logout"
+                onClick={logout}
+              >
+                <LogOut size={18} />
+                <span className="sidebar__text">Выйти</span>
+              </button>
+            </div>
+          )}
         </div>
-      )}
-    </aside>
+      </aside>
+    </>
   );
 };
 

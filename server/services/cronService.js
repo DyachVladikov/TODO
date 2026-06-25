@@ -49,7 +49,18 @@ export const executeCron = async (req, res) => {
           const userChatId = task.userId?.telegramId;
 
           if (userChatId) {
-            const text = `🔔 <b>Напоминание!</b>\n\n📝 Задача: <b>${task.title}</b>\n⏰ Дедлайн: ${new Date(task.deadline).toLocaleString("ru-RU")}`;
+            const formattedDeadline = new Date(task.deadline).toLocaleString(
+              "ru-RU",
+              {
+                timeZone: "Europe/Moscow", // Укажи здесь нужный часовой пояс
+                year: "numeric",
+                month: "numeric",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              },
+            );
+            const text = `🔔 <b>Напоминание!</b>\n\n📝 Задача: <b>${task.title}</b>\n⏰ Дедлайн: ${formattedDeadline}`;
             telegramPromises.push(sendTelegramMessage(userChatId, text));
           }
 

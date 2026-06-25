@@ -511,7 +511,6 @@ const TaskDetails = ({ task, onClose }: TaskDetailsProps) => {
                           }
                           className="task-meta-select"
                         >
-                          <option value="inbox">Входящие</option>
                           <option value="work">Работа</option>
                           <option value="home">Дом</option>
                           <option value="ideas">Идеи</option>

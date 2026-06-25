@@ -221,7 +221,6 @@ const CreateTaskModal = ({
   const [error, setError] = useState(false);
 
   const projectOptions = [
-    { value: "inbox", label: "Входящие" },
     { value: "work", label: "Работа" },
     { value: "home", label: "Дом" },
     { value: "ideas", label: "Идеи" },
@@ -260,7 +259,7 @@ const CreateTaskModal = ({
       setTimeDeadline("");
       setReminderMinutes("none");
       setCustomReminderOpt(null);
-      setProjectId("inbox");
+      setProjectId("work");
       setTagsInput("");
       setImportant(false);
       setError(false);

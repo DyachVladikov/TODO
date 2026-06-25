@@ -7,6 +7,7 @@ import {
   Trash2,
   AlignLeft,
   CheckSquare,
+  Calendar,
 } from "lucide-react";
 import type { Task, Priority } from "@/api/types";
 import { useFolders } from "@/hooks/useFolders";
@@ -39,7 +40,6 @@ const TaskItem = ({
 
   const getProjectMeta = (id: string) => {
     const defaultProjects = [
-      { id: "inbox", label: "Входящие", color: "var(--color-text-muted)" },
       { id: "work", label: "Работа", color: "#3B82F6" },
       { id: "home", label: "Дом", color: "#10B981" },
       { id: "ideas", label: "Идеи", color: "#8B5CF6" },
@@ -57,8 +57,15 @@ const TaskItem = ({
   const projectMeta = getProjectMeta(task.projectId);
   const priorityMeta = getPriorityMeta(task.priority as Priority);
 
-  const formatDeadline = (dateString: string) => {
+  const formatDeadlineDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("ru-RU");
+  };
+
+  const formatDeadlineTime = (dateString: string) => {
+    return new Date(dateString).toLocaleTimeString("ru-RU", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   const hasTags = task.tags && task.tags.length > 0;
@@ -68,9 +75,7 @@ const TaskItem = ({
       className={`task-item ${task.completed ? "task-item--completed" : ""}`}
       onClick={() => onClick(task)}
     >
-      {/* 1. ШАПКА КАРТОЧКИ (Всегда видна) */}
       <div className="task-item__header">
-        {/* Чекбокс (Слева) */}
         <button
           className={`task-item__checkbox ${task.completed ? "task-item__checkbox--active" : ""}`}
           onClick={(e) => {
@@ -81,12 +86,10 @@ const TaskItem = ({
           {task.completed && <Check size={16} />}
         </button>
 
-        {/* Название и Мини-бэйджи */}
         <div className="task-item__title-area">
           <span className="task-item__title">{task.title}</span>
 
           <div className="task-item__mini-badges">
-            {/* ХИРУРГИЧЕСКАЯ ВСТАВКА: Звездочка для важных задач в свернутом виде */}
             {task.important && (
               <Star
                 size={16}
@@ -101,7 +104,6 @@ const TaskItem = ({
           </div>
         </div>
 
-        {/* Действия (Справа, появляются при наведении) */}
         <div className="task-item__actions">
           <button
             className={`task-item__btn ${task.important ? "task-item__btn--important" : ""}`}
@@ -126,20 +128,29 @@ const TaskItem = ({
         </div>
       </div>
 
-      {/* 2. РАСКРЫВАЮЩАЯСЯ ЧАСТЬ (Анимация высоты) */}
       <div className="task-item__expanded">
         <div className="task-item__expanded-inner">
-          {/* Полные бэйджи по центру в КРАСИВЫХ РАМКАХ */}
           <div className="task-item__full-badges">
             <div
               className="task-badge"
-              style={{ color: "var(--color-text-muted)" }}
+              style={{
+                color: task.deadline ? "#06B6D4" : "var(--color-text-muted)",
+              }}
             >
-              <Clock size={14} />
+              <Calendar size={14} />
               <span>
-                {task.deadline ? formatDeadline(task.deadline) : "Бессрочно"}
+                {task.deadline
+                  ? formatDeadlineDate(task.deadline)
+                  : "Бессрочно"}
               </span>
             </div>
+
+            {task.deadline && (
+              <div className="task-badge" style={{ color: "#F97316" }}>
+                <Clock size={14} />
+                <span>{formatDeadlineTime(task.deadline)}</span>
+              </div>
+            )}
 
             <div className="task-badge" style={{ color: priorityMeta.color }}>
               <Flag size={14} />
@@ -152,7 +163,6 @@ const TaskItem = ({
             </div>
           </div>
 
-          {/* Описание и Чек-листы */}
           {(task.notes || (task.checkList && task.checkList.length > 0)) && (
             <div className="task-item__notes-section">
               {task.notes && (
@@ -173,7 +183,6 @@ const TaskItem = ({
             </div>
           )}
 
-          {/* Футер: Теги (Слева) и Дата (Справа) */}
           <div className="task-item__footer">
             <div className="task-item__tags">
               {hasTags ? (

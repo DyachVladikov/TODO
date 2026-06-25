@@ -11,7 +11,6 @@ import { startCronJobs } from "./services/cronService.js";
 dotenv.config();
 const app = express();
 startCronJobs();
-
 const Port = process.env.PORT || 3002;
 const DbPassword = process.env.DB_PASSWORD;
 const DbUser = process.env.DB_USER;

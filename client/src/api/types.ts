@@ -36,6 +36,7 @@ export interface Task {
   projectId: string;
   tags?: string[]; // Массив тегов
   checkList?: CheckListItem[]; // Массив подзадач
+  reminders?: { minutesBefore: number; triggerAt: string; sent: boolean }[];
 }
 
 // Тип для создания/обновления (отправки на бэк)

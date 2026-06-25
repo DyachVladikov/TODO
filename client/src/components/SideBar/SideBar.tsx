@@ -9,12 +9,82 @@ import {
   Plus,
   LogOut,
   X,
-  Menu, // Добавили иконку бургера
+  Menu,
+  FolderPlus,
 } from "lucide-react";
 import { useTasks } from "@/hooks/useTasks";
 import { useLogout } from "@/hooks/useApi";
 import { useFolders } from "@/hooks/useFolders";
 import "./SideBar.scss";
+
+interface AddFolderModalProps {
+  onClose: () => void;
+  onSave: (name: string) => void;
+}
+
+const AddFolderModal = ({ onClose, onSave }: AddFolderModalProps) => {
+  const [name, setName] = useState("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (name.trim()) {
+      onSave(name.trim());
+      onClose();
+    }
+  };
+
+  return (
+    <div className="modal-overlay modal-overlay--nested" onClick={onClose}>
+      <div
+        className="modal-content modal-content--compact"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <header className="modal-header compact-header">
+          <div className="compact-header-title">
+            <FolderPlus size={18} className="header-icon" />
+            <h3>Новая папка</h3>
+          </div>
+          <button className="modal-close" onClick={onClose} type="button">
+            <X size={18} />
+          </button>
+        </header>
+        <form onSubmit={handleSubmit} className="modal-form">
+          <div
+            className="form-row compact-row"
+            style={{ marginBottom: "20px" }}
+          >
+            <div className="form-group" style={{ flex: 1 }}>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="Название папки..."
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                autoFocus
+              />
+            </div>
+          </div>
+          <footer className="modal-footer compact-footer">
+            <button
+              type="button"
+              className="btn btn--secondary"
+              onClick={onClose}
+            >
+              Отмена
+            </button>
+            <button
+              type="submit"
+              className="btn btn--primary gradient-btn"
+              disabled={!name.trim()}
+            >
+              Создать
+            </button>
+          </footer>
+        </form>
+      </div>
+    </div>
+  );
+};
 
 interface SidebarProps {
   activeFilter: string;
@@ -22,7 +92,8 @@ interface SidebarProps {
 }
 
 const Sidebar = ({ activeFilter, setActiveFilter }: SidebarProps) => {
-  const [isMobileOpen, setIsMobileOpen] = useState(false); // Состояние для мобильного меню
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
   const { data: tasks = [] } = useTasks();
   const { folders, addFolder, deleteFolder, isAdding } = useFolders();
   const logout = useLogout();
@@ -39,11 +110,8 @@ const Sidebar = ({ activeFilter, setActiveFilter }: SidebarProps) => {
     );
   }).length;
 
-  const handleAddFolder = () => {
-    const name = prompt("Введите название новой папки:");
-    if (name && name.trim()) {
-      addFolder(name.trim());
-    }
+  const handleAddFolderSave = (name: string) => {
+    addFolder(name);
   };
 
   const handleDeleteFolder = (e: React.MouseEvent, id: string) => {
@@ -58,7 +126,6 @@ const Sidebar = ({ activeFilter, setActiveFilter }: SidebarProps) => {
     }
   };
 
-  // Обертка для выбора фильтра, чтобы закрывать меню на мобилках
   const handleFilterSelect = (filter: string) => {
     setActiveFilter(filter);
     setIsMobileOpen(false);
@@ -72,7 +139,6 @@ const Sidebar = ({ activeFilter, setActiveFilter }: SidebarProps) => {
 
   return (
     <>
-      {/* Затемнение фона на мобилках при открытом меню */}
       <div
         className={`sidebar__overlay ${isMobileOpen ? "sidebar__overlay--active" : ""}`}
         onClick={() => setIsMobileOpen(false)}
@@ -81,7 +147,6 @@ const Sidebar = ({ activeFilter, setActiveFilter }: SidebarProps) => {
       <aside
         className={`sidebar ${isMobileOpen ? "sidebar--mobile-open" : ""}`}
       >
-        {/* Кнопка бургера (видна только на мобилке) */}
         <button
           className="sidebar__burger"
           onClick={() => setIsMobileOpen(!isMobileOpen)}
@@ -89,7 +154,6 @@ const Sidebar = ({ activeFilter, setActiveFilter }: SidebarProps) => {
           {isMobileOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
 
-        {/* Контент сайдбара (на десктопе всегда виден, на мобилке - внутри dropdown) */}
         <div className="sidebar__content">
           <div className="sidebar__logo">
             <CheckSquare size={24} className="sidebar__logo-icon" />
@@ -138,7 +202,7 @@ const Sidebar = ({ activeFilter, setActiveFilter }: SidebarProps) => {
               <h3 className="sidebar__text">ПРОЕКТЫ</h3>
               <button
                 className="sidebar__projects-add"
-                onClick={handleAddFolder}
+                onClick={() => setIsFolderModalOpen(true)}
                 disabled={isAdding}
                 title="Создать папку"
               >
@@ -191,6 +255,13 @@ const Sidebar = ({ activeFilter, setActiveFilter }: SidebarProps) => {
           )}
         </div>
       </aside>
+
+      {isFolderModalOpen && (
+        <AddFolderModal
+          onClose={() => setIsFolderModalOpen(false)}
+          onSave={handleAddFolderSave}
+        />
+      )}
     </>
   );
 };

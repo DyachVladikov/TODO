@@ -13,10 +13,210 @@ import {
   Square,
   Save,
   Edit2,
+  Bell,
+  ChevronDown,
 } from "lucide-react";
 import type { Task, TaskPayload, Priority, CheckListItem } from "@/api/types";
 import { useUpdateTask, useDeleteTask } from "@/hooks/useTasks";
 import "./TaskDetails.scss";
+
+const formatDateTime = (dateString: string | undefined | null) => {
+  if (!dateString) return "Нет";
+  const date = new Date(dateString);
+  return date.toLocaleString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+const formatDateOnly = (dateString: string | undefined | null) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const formatTimeOnly = (dateString: string | undefined | null) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${hours}:${minutes}`;
+};
+
+const formatReminderLabel = (minutes: number) => {
+  if (minutes < 60) return `За ${minutes} мин.`;
+  if (minutes < 1440) return `За ${minutes / 60} ч.`;
+  return `За ${minutes / 1440} дн.`;
+};
+
+interface CustomReminderModalProps {
+  onClose: () => void;
+  onSave: (minutes: number) => void;
+}
+
+const CustomReminderModal = ({ onClose, onSave }: CustomReminderModalProps) => {
+  const [amount, setAmount] = useState<number | string>(10);
+  const [unit, setUnit] = useState<string>("minutes");
+
+  const handleConfirm = (e: React.FormEvent) => {
+    e.preventDefault();
+    const numAmount = Number(amount);
+    if (numAmount <= 0) return;
+
+    let minutes = numAmount;
+    if (unit === "hours") minutes = numAmount * 60;
+    if (unit === "days") minutes = numAmount * 1440;
+
+    onSave(minutes);
+    onClose();
+  };
+
+  const unitOptions = [
+    { value: "minutes", label: "Минут" },
+    { value: "hours", label: "Часов" },
+    { value: "days", label: "Дней" },
+  ];
+
+  return (
+    <div className="modal-overlay modal-overlay--nested" onClick={onClose}>
+      <div
+        className="modal-content modal-content--small"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <header className="modal-header compact-header">
+          <div className="compact-header-title">
+            <Bell size={18} className="header-icon" />
+            <h3>Точное напоминание</h3>
+          </div>
+          <button className="modal-close" onClick={onClose} type="button">
+            <X size={18} />
+          </button>
+        </header>
+        <form onSubmit={handleConfirm} className="modal-form">
+          <div
+            className="form-row"
+            style={{ gap: "10px", marginBottom: "20px" }}
+          >
+            <div className="form-group" style={{ flex: 1 }}>
+              <input
+                type="number"
+                className="form-input custom-number-input"
+                min="1"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                autoFocus
+              />
+            </div>
+            <div className="form-group" style={{ flex: 1.5 }}>
+              <ModalDropdown
+                icon={
+                  <Clock
+                    size={16}
+                    style={{ color: "var(--color-text-muted)" }}
+                  />
+                }
+                options={unitOptions}
+                value={unit}
+                onChange={setUnit}
+              />
+            </div>
+          </div>
+          <footer className="modal-footer">
+            <button
+              type="button"
+              className="btn btn--secondary"
+              onClick={onClose}
+            >
+              Отмена
+            </button>
+            <button type="submit" className="btn btn--primary">
+              Применить
+            </button>
+          </footer>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+const ModalDropdown = ({ icon, value, options, onChange, disabled }: any) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find((o: any) => o.value === value);
+
+  return (
+    <div
+      className={`modal-custom-select ${disabled ? "disabled" : ""}`}
+      ref={dropdownRef}
+    >
+      <select
+        className="modal-custom-select__native"
+        value={value}
+        onChange={(e) => {
+          if (disabled) return;
+          onChange(e.target.value);
+          setIsOpen(false);
+        }}
+        disabled={disabled}
+      >
+        {options.map((opt: any) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+
+      <button
+        className={`modal-custom-select__toggle ${isOpen ? "active" : ""}`}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        type="button"
+        disabled={disabled}
+      >
+        {icon}
+        <span>{selectedOption?.label || options[0]?.label}</span>
+        <ChevronDown size={16} className="icon-chevron" />
+      </button>
+
+      {isOpen && !disabled && (
+        <div className="modal-custom-select__menu">
+          {options.map((opt: any) => (
+            <button
+              key={opt.value}
+              type="button"
+              className={`modal-custom-select__item ${opt.value === value ? "selected" : ""}`}
+              onClick={() => {
+                onChange(opt.value);
+                setIsOpen(false);
+              }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 interface TaskDetailsProps {
   task: Task | null;
@@ -29,11 +229,31 @@ const TaskDetails = ({ task, onClose }: TaskDetailsProps) => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState<TaskPayload | null>(null);
+
+  const [dateDraft, setDateDraft] = useState("");
+  const [timeDraft, setTimeDraft] = useState("");
+  const [remindersDraft, setRemindersDraft] = useState<number[]>([]);
+  const [isCustomReminderOpen, setIsCustomReminderOpen] = useState(false);
+
   const [newCheckLinkTitle, setNewCheckLinkTitle] = useState("");
   const titleRef = useRef<HTMLTextAreaElement>(null);
 
-  // Флаг для управления анимацией выезда
   const isOpen = Boolean(task);
+
+  const reminderOptions = [
+    { value: "none", label: "Добавить напоминание..." },
+    { value: "5", label: "За 5 минут" },
+    { value: "15", label: "За 15 минут" },
+    { value: "30", label: "За 30 минут" },
+    { value: "60", label: "За 1 час" },
+    { value: "180", label: "За 3 часа" },
+    { value: "360", label: "За 6 часов" },
+    { value: "720", label: "За 12 часов" },
+    { value: "1440", label: "За 24 часа" },
+    { value: "4320", label: "За 3 дня" },
+    { value: "10080", label: "За 7 дней" },
+    { value: "custom", label: "Свой выбор..." },
+  ];
 
   useEffect(() => {
     if (task) {
@@ -46,7 +266,17 @@ const TaskDetails = ({ task, onClose }: TaskDetailsProps) => {
         projectId: task.projectId,
         tags: task.tags || [],
         checkList: task.checkList || [],
+        important: task.important || false,
       });
+
+      setDateDraft(formatDateOnly(task.deadline));
+      setTimeDraft(formatTimeOnly(task.deadline));
+
+      const mappedReminders = task.reminders
+        ? task.reminders.map((r: any) => r.minutesBefore || r)
+        : [];
+      setRemindersDraft(mappedReminders);
+
       setNewCheckLinkTitle("");
     } else {
       setDraft(null);
@@ -58,10 +288,45 @@ const TaskDetails = ({ task, onClose }: TaskDetailsProps) => {
     setDraft((prev) => (prev ? { ...prev, ...updates } : null));
   };
 
+  const handleAddReminder = (val: string) => {
+    if (val === "none") return;
+    if (val === "custom") {
+      setIsCustomReminderOpen(true);
+      return;
+    }
+    const minutes = Number(val);
+    if (!remindersDraft.includes(minutes)) {
+      setRemindersDraft([...remindersDraft, minutes].sort((a, b) => a - b));
+    }
+  };
+
+  const handleCustomReminderSave = (minutes: number) => {
+    if (!remindersDraft.includes(minutes)) {
+      setRemindersDraft([...remindersDraft, minutes].sort((a, b) => a - b));
+    }
+  };
+
+  const handleRemoveReminder = (minutes: number) => {
+    setRemindersDraft(remindersDraft.filter((m) => m !== minutes));
+  };
+
   const handleSave = () => {
     if (!draft || !task) return;
+
+    let formattedDeadline = "";
+    if (dateDraft) {
+      const time = timeDraft || "00:00";
+      formattedDeadline = new Date(`${dateDraft}T${time}`).toISOString();
+    }
+
+    const payload = {
+      ...draft,
+      deadline: formattedDeadline,
+      reminderMinutes: remindersDraft,
+    };
+
     updateTaskMutation.mutate(
-      { id: task.id, updates: draft },
+      { id: task.id, updates: payload },
       {
         onSuccess: () => {
           setIsEditing(false);
@@ -81,7 +346,14 @@ const TaskDetails = ({ task, onClose }: TaskDetailsProps) => {
       projectId: task.projectId,
       tags: task.tags || [],
       checkList: task.checkList || [],
+      important: task.important || false,
     });
+    setDateDraft(formatDateOnly(task.deadline));
+    setTimeDraft(formatTimeOnly(task.deadline));
+    const mappedReminders = task.reminders
+      ? task.reminders.map((r: any) => r.minutesBefore || r)
+      : [];
+    setRemindersDraft(mappedReminders);
   };
 
   const handleDeleteTask = () => {
@@ -137,13 +409,11 @@ const TaskDetails = ({ task, onClose }: TaskDetailsProps) => {
 
   return (
     <>
-      {/* Темная подложка, закрывающая панель по клику мимо нее */}
       <div
         className={`task-details-overlay ${isOpen ? "active" : ""}`}
         onClick={onClose}
       />
 
-      {/* Сама панель с классом 'open' для анимации */}
       <aside
         className={`task-details ${isOpen ? "open" : ""} ${!task || !draft ? "task-details--empty" : ""}`}
       >
@@ -244,6 +514,7 @@ const TaskDetails = ({ task, onClose }: TaskDetailsProps) => {
                           <option value="inbox">Входящие</option>
                           <option value="work">Работа</option>
                           <option value="home">Дом</option>
+                          <option value="ideas">Идеи</option>
                         </select>
                       ) : (
                         <span>
@@ -251,7 +522,9 @@ const TaskDetails = ({ task, onClose }: TaskDetailsProps) => {
                             ? "Работа"
                             : task.projectId === "home"
                               ? "Дом"
-                              : "Входящие"}
+                              : task.projectId === "ideas"
+                                ? "Идеи"
+                                : "Входящие"}
                         </span>
                       )}
                     </div>
@@ -260,26 +533,42 @@ const TaskDetails = ({ task, onClose }: TaskDetailsProps) => {
                   <div
                     className={`task-meta-item ${isEditing ? "task-meta-item--clickable" : ""}`}
                   >
-                    <span className="task-meta-label">Дедлайн</span>
+                    <span className="task-meta-label">Дата</span>
                     <div className="task-meta-value">
                       <Calendar size={14} />
                       {isEditing ? (
                         <input
                           type="date"
-                          value={
-                            draft.deadline ? draft.deadline.split("T")[0] : ""
-                          }
-                          onChange={(e) =>
-                            updateDraft({ deadline: e.target.value })
-                          }
+                          value={dateDraft}
+                          onChange={(e) => setDateDraft(e.target.value)}
                           className="task-meta-date-input"
                         />
                       ) : (
                         <span>
-                          {task.deadline
-                            ? new Date(task.deadline).toLocaleDateString()
+                          {dateDraft
+                            ? new Date(dateDraft).toLocaleDateString()
                             : "Нет"}
                         </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div
+                    className={`task-meta-item ${isEditing ? "task-meta-item--clickable" : ""}`}
+                  >
+                    <span className="task-meta-label">Время</span>
+                    <div className="task-meta-value">
+                      <Clock size={14} />
+                      {isEditing ? (
+                        <input
+                          type="time"
+                          value={timeDraft}
+                          onChange={(e) => setTimeDraft(e.target.value)}
+                          className="task-meta-date-input"
+                          disabled={!dateDraft}
+                        />
+                      ) : (
+                        <span>{timeDraft || "Нет"}</span>
                       )}
                     </div>
                   </div>
@@ -317,6 +606,60 @@ const TaskDetails = ({ task, onClose }: TaskDetailsProps) => {
                     </div>
                   </div>
                 </div>
+              </div>
+
+              <div className="task-details__section">
+                <div className="task-details__section-header">
+                  <Bell size={16} />
+                  <h3>Напоминания</h3>
+                </div>
+
+                <div
+                  className="task-tags-list"
+                  style={{ marginBottom: isEditing ? "10px" : "0" }}
+                >
+                  {!isEditing && remindersDraft.length === 0 && (
+                    <span className="task-details__empty-text">
+                      Нет напоминаний
+                    </span>
+                  )}
+                  {remindersDraft.map((minutes) => (
+                    <span
+                      key={minutes}
+                      className="task-tag"
+                      style={{ background: "var(--color-surface-2)" }}
+                    >
+                      <Bell
+                        size={12}
+                        style={{
+                          marginRight: "4px",
+                          color: "var(--color-accent-primary)",
+                        }}
+                      />
+                      {formatReminderLabel(minutes)}
+                      {isEditing && (
+                        <button onClick={() => handleRemoveReminder(minutes)}>
+                          <X size={12} />
+                        </button>
+                      )}
+                    </span>
+                  ))}
+                </div>
+
+                {isEditing && (
+                  <ModalDropdown
+                    icon={
+                      <Bell
+                        size={16}
+                        style={{ color: "var(--color-text-muted)" }}
+                      />
+                    }
+                    options={reminderOptions}
+                    value={"none"}
+                    onChange={handleAddReminder}
+                    disabled={!dateDraft}
+                  />
+                )}
               </div>
 
               <div className="task-details__section">
@@ -459,12 +802,19 @@ const TaskDetails = ({ task, onClose }: TaskDetailsProps) => {
             <footer className="task-details__footer">
               <div className="task-date">
                 <Clock size={12} />
-                Создано: {new Date(task.createdAt).toLocaleDateString()}
+                Создано: {formatDateTime(task.createdAt)}
               </div>
             </footer>
           </>
         )}
       </aside>
+
+      {isCustomReminderOpen && (
+        <CustomReminderModal
+          onClose={() => setIsCustomReminderOpen(false)}
+          onSave={handleCustomReminderSave}
+        />
+      )}
     </>
   );
 };

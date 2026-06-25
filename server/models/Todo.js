@@ -50,6 +50,16 @@ const TodoSchema = new mongoose.Schema(
       ],
       default: [],
     },
+    reminders: {
+      type: [
+        {
+          minutesBefore: { type: Number, required: true },
+          triggerAt: { type: Date, required: true },
+          sent: { type: Boolean, default: false },
+        },
+      ],
+      default: [],
+    },
   },
   {
     timestamps: true,

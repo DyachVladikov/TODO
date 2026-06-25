@@ -73,6 +73,10 @@
   gap: 24px;
   overflow-y: auto;
 
+  &--reminder {
+    gap: 0px;
+  }
+
   &::-webkit-scrollbar {
     width: 4px;
   }
@@ -399,7 +403,7 @@
 /* Футер и кнопки */
 .modal-footer {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 12px;
   margin-top: 8px;
   padding-top: 24px;
@@ -451,6 +455,57 @@
     }
   }
 }
+.modal-overlay--nested {
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(0, 0, 0, 0.75) !important;
+  z-index: 9999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.modal-content--small {
+  max-width: 340px !important;
+  z-index: 10000 !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5) !important;
+
+  .compact-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+
+    .compact-header-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .header-icon {
+        color: var(--color-accent-primary);
+      }
+
+      h3 {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0;
+        color: var(--color-text-primary);
+      }
+    }
+  }
+}
+
+.custom-number-input::-webkit-outer-spin-button,
+.custom-number-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.custom-number-input[type="number"] {
+  -moz-appearance: textfield;
+}
+.custom-number-input[type="number"] {
+  -moz-appearance: textfield;
+}
 
 @keyframes fadeIn {
   from {
@@ -469,4 +524,9 @@
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+.custom-number-input::-webkit-outer-spin-button,
+.custom-number-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }

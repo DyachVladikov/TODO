@@ -1,11 +1,10 @@
 import Todo from "../models/Todo.js";
-import User from "../models/Users.js";
 
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "ТВОЙ_ТОКЕН_БОТА";
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
 const sendTelegramMessage = async (chatId, text) => {
   try {
-    await fetch(
+    const response = await fetch(
       `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
       {
         method: "POST",
@@ -17,8 +16,9 @@ const sendTelegramMessage = async (chatId, text) => {
         }),
       },
     );
+    return await response.json();
   } catch (error) {
-    console.error(`Ошибка отправки пользователю ${chatId}:`, error);
+    return { error: error.message };
   }
 };
 
@@ -37,13 +37,23 @@ export const executeCron = async (req, res) => {
     }).populate("userId");
 
     if (tasks.length === 0) {
-      return res.status(200).json({ message: "Нет задач для отправки" });
+      return res.status(200).json({
+        message: "Нет задач для отправки",
+        systemTime: now.toISOString(),
+      });
     }
 
-    let messagesSent = 0;
+    const debugReport = [];
 
     for (const task of tasks) {
       let isModified = false;
+      const taskLog = {
+        taskId: task._id,
+        taskTitle: task.title,
+        userIdRaw: task.userId,
+        telegramIdFromDb: task.userId?.telegramId || null,
+        telegramApiResult: null,
+      };
 
       for (const reminder of task.reminders) {
         if (!reminder.sent && reminder.triggerAt <= now) {
@@ -51,8 +61,8 @@ export const executeCron = async (req, res) => {
 
           if (userChatId) {
             const text = `🔔 <b>Напоминание!</b>\n\n📝 Задача: <b>${task.title}</b>\n⏰ Дедлайн: ${new Date(task.deadline).toLocaleString("ru-RU")}`;
-            await sendTelegramMessage(userChatId, text);
-            messagesSent++;
+            const tgResult = await sendTelegramMessage(userChatId, text);
+            taskLog.telegramApiResult = tgResult;
           }
 
           reminder.sent = true;
@@ -63,11 +73,11 @@ export const executeCron = async (req, res) => {
       if (isModified) {
         await task.save();
       }
+      debugReport.push(taskLog);
     }
 
-    return res.status(200).json({ success: true, sent: messagesSent });
+    return res.status(200).json({ success: true, debugReport });
   } catch (error) {
-    console.error("Ошибка Cron:", error.message);
-    return res.status(500).json({ error: "Внутренняя ошибка сервера" });
+    return res.status(500).json({ error: error.message });
   }
 };

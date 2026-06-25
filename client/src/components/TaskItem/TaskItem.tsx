@@ -70,6 +70,11 @@ const TaskItem = ({
 
   const hasTags = task.tags && task.tags.length > 0;
 
+  const isOverdue =
+    task.deadline &&
+    !task.completed &&
+    new Date(task.deadline).getTime() < new Date().getTime();
+
   return (
     <div
       className={`task-item ${task.completed ? "task-item--completed" : ""}`}
@@ -98,7 +103,13 @@ const TaskItem = ({
               />
             )}
 
-            <Clock size={16} style={{ opacity: task.deadline ? 1 : 0.4 }} />
+            <Clock
+              size={16}
+              style={{
+                opacity: task.deadline ? 1 : 0.4,
+                color: isOverdue ? "var(--color-status-error)" : "inherit",
+              }}
+            />
             <Flag size={16} style={{ color: priorityMeta.color }} />
             <Folder size={16} style={{ color: projectMeta.color }} />
           </div>
@@ -134,7 +145,11 @@ const TaskItem = ({
             <div
               className="task-badge"
               style={{
-                color: task.deadline ? "#06B6D4" : "var(--color-text-muted)",
+                color: isOverdue
+                  ? "var(--color-status-error)"
+                  : task.deadline
+                    ? "#06B6D4"
+                    : "var(--color-text-muted)",
               }}
             >
               <Calendar size={14} />
@@ -146,7 +161,12 @@ const TaskItem = ({
             </div>
 
             {task.deadline && (
-              <div className="task-badge" style={{ color: "#F97316" }}>
+              <div
+                className="task-badge"
+                style={{
+                  color: isOverdue ? "var(--color-status-error)" : "#F97316",
+                }}
+              >
                 <Clock size={14} />
                 <span>{formatDeadlineTime(task.deadline)}</span>
               </div>

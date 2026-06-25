@@ -37,23 +37,12 @@ export const executeCron = async (req, res) => {
     }).populate("userId");
 
     if (tasks.length === 0) {
-      return res.status(200).json({
-        message: "Нет задач для отправки",
-        systemTime: now.toISOString(),
-      });
+      return res.status(200).json({ message: "Нет задач для отправки" });
     }
 
-    const debugReport = [];
-
-    for (const task of tasks) {
+    const taskPromises = tasks.map(async (task) => {
       let isModified = false;
-      const taskLog = {
-        taskId: task._id,
-        taskTitle: task.title,
-        userIdRaw: task.userId,
-        telegramIdFromDb: task.userId?.telegramId || null,
-        telegramApiResult: null,
-      };
+      const telegramPromises = [];
 
       for (const reminder of task.reminders) {
         if (!reminder.sent && reminder.triggerAt <= now) {
@@ -61,8 +50,7 @@ export const executeCron = async (req, res) => {
 
           if (userChatId) {
             const text = `🔔 <b>Напоминание!</b>\n\n📝 Задача: <b>${task.title}</b>\n⏰ Дедлайн: ${new Date(task.deadline).toLocaleString("ru-RU")}`;
-            const tgResult = await sendTelegramMessage(userChatId, text);
-            taskLog.telegramApiResult = tgResult;
+            telegramPromises.push(sendTelegramMessage(userChatId, text));
           }
 
           reminder.sent = true;
@@ -70,13 +58,16 @@ export const executeCron = async (req, res) => {
         }
       }
 
-      if (isModified) {
-        await task.save();
-      }
-      debugReport.push(taskLog);
-    }
+      await Promise.all(telegramPromises);
 
-    return res.status(200).json({ success: true, debugReport });
+      if (isModified) {
+        return task.save();
+      }
+    });
+
+    await Promise.all(taskPromises);
+
+    return res.status(200).json({ success: true, processed: tasks.length });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }

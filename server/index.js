@@ -6,11 +6,10 @@ import cors from "cors";
 import AuthRoutes from "./routes/authRoutes.js";
 import TodoRoutes from "./routes/todosRoutes.js";
 import folderRoutes from "./routes/folders.js";
-import { startCronJobs } from "./services/cronService.js";
+import { executeCron } from "./services/cronService.js";
 
 dotenv.config();
 const app = express();
-startCronJobs();
 const Port = process.env.PORT || 3002;
 const DbPassword = process.env.DB_PASSWORD;
 const DbUser = process.env.DB_USER;
@@ -25,7 +24,6 @@ const connectDB = async () => {
   if (cachedDb) {
     return cachedDb;
   }
-  // Если база спит (холодный старт) - ждем подключения
   const db = await mongoose.connect(MONGO_URI);
   cachedDb = db;
   console.log("DB Connected Serverless Style");
@@ -42,6 +40,7 @@ app.use(async (req, res, next) => {
   }
 });
 
+app.get("/api/cron", executeCron);
 app.use("/api", AuthRoutes);
 app.use("/api", TodoRoutes);
 app.use("/api", folderRoutes);

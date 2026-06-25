@@ -1,10 +1,8 @@
-import cron from "node-cron";
 import Todo from "../models/Todo.js";
 import User from "../models/Users.js";
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "ТВОЙ_ТОКЕН_БОТА";
 
-// Функция отправки сообщения в ТГ
 const sendTelegramMessage = async (chatId, text) => {
   try {
     await fetch(
@@ -20,52 +18,56 @@ const sendTelegramMessage = async (chatId, text) => {
       },
     );
   } catch (error) {
-    console.error(`Ошибка отправки сообщения пользователю ${chatId}:`, error);
+    console.error(`Ошибка отправки пользователю ${chatId}:`, error);
   }
 };
 
-export const startCronJobs = () => {
-  console.log("🕒 Cron сервис запущен...");
+export const executeCron = async (req, res) => {
+  try {
+    const now = new Date();
 
-  // Запускаем проверку каждую минуту: * * * * *
-  cron.schedule("* * * * *", async () => {
-    try {
-      const now = new Date();
-
-      const tasks = await Todo.find({
-        completed: false,
-        reminders: {
-          $elemMatch: {
-            sent: false,
-            triggerAt: { $lte: now },
-          },
+    const tasks = await Todo.find({
+      completed: false,
+      reminders: {
+        $elemMatch: {
+          sent: false,
+          triggerAt: { $lte: now },
         },
-      }).populate("userId");
+      },
+    }).populate("userId");
 
-      if (tasks.length === 0) return;
+    if (tasks.length === 0) {
+      return res.status(200).json({ message: "Нет задач для отправки" });
+    }
 
-      for (const task of tasks) {
-        let isModified = false;
+    let messagesSent = 0;
 
-        for (const reminder of task.reminders) {
-          if (!reminder.sent && reminder.triggerAt <= now) {
-            const userChatId = task.userId.telegramId;
+    for (const task of tasks) {
+      let isModified = false;
 
-            if (userChatId) {
-              const text = `🔔 <b>Напоминание!</b>\n\n📝 Задача: <b>${task.title}</b>\n⏰ Дедлайн: ${new Date(task.deadline).toLocaleString("ru-RU")}`;
+      for (const reminder of task.reminders) {
+        if (!reminder.sent && reminder.triggerAt <= now) {
+          const userChatId = task.userId?.telegramId;
 
-              await sendTelegramMessage(userChatId, text);
-            }
-            reminder.sent = true;
-            isModified = true;
+          if (userChatId) {
+            const text = `🔔 <b>Напоминание!</b>\n\n📝 Задача: <b>${task.title}</b>\n⏰ Дедлайн: ${new Date(task.deadline).toLocaleString("ru-RU")}`;
+            await sendTelegramMessage(userChatId, text);
+            messagesSent++;
           }
-        }
-        if (isModified) {
-          await task.save();
+
+          reminder.sent = true;
+          isModified = true;
         }
       }
-    } catch (error) {
-      console.error("Ошибка в работе Cron:", error.message);
+
+      if (isModified) {
+        await task.save();
+      }
     }
-  });
+
+    return res.status(200).json({ success: true, sent: messagesSent });
+  } catch (error) {
+    console.error("Ошибка Cron:", error.message);
+    return res.status(500).json({ error: "Внутренняя ошибка сервера" });
+  }
 };

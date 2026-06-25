@@ -6,9 +6,11 @@ import cors from "cors";
 import AuthRoutes from "./routes/authRoutes.js";
 import TodoRoutes from "./routes/todosRoutes.js";
 import folderRoutes from "./routes/folders.js";
+import { startCronJobs } from "./services/cronService.js";
 
 dotenv.config();
 const app = express();
+startCronJobs();
 
 const Port = process.env.PORT || 3002;
 const DbPassword = process.env.DB_PASSWORD;

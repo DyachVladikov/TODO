@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 const UsersSchema = new mongoose.Schema(
   {
     telegramId: { type: String, unique: true, sparse: true },
-    // ДОБАВЛЕН name, чтобы сохранять имя из ТГ
     name: {
       type: String,
       trim: true,

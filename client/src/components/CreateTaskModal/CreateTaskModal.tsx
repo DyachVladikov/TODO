@@ -11,7 +11,7 @@ import {
   Clock,
   Bell,
 } from "lucide-react";
-import type { TaskPayload, Priority } from "@/api/types";
+import type { Priority } from "@/api/types";
 import { useFolders } from "@/hooks/useFolders";
 import "./CreateTaskModal.scss";
 

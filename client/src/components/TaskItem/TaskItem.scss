@@ -1,5 +1,54 @@
 @use "@/styles/helpers/index" as *;
 
+/* ========================================= */
+/* === 1. ОБЕРТКА И ПОДЛОЖКИ ДЛЯ СВАЙПА ==== */
+/* ========================================= */
+.task-item-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  background: var(--bg-primary, #151521);
+  width: 100%;
+  display: block;
+  flex-shrink: 0;
+}
+
+.task-item-swipe-bg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  color: #fff;
+  z-index: 1;
+  opacity: 0; // Изначально скрыто, управляется через JS
+
+  &--complete {
+    left: 0;
+    background: #10b981;
+    justify-content: flex-start;
+  }
+
+  &--delete {
+    right: 0;
+    background: #ef4444;
+    justify-content: flex-end;
+  }
+}
+
+.swipe-right-active .task-item-swipe-bg--complete {
+  opacity: 1;
+}
+.swipe-left-active .task-item-swipe-bg--delete {
+  opacity: 1;
+}
+
+/* ========================================= */
+/* === 2. САМА КАРТОЧКА ЗАДАЧИ ============= */
+/* ========================================= */
 .task-item {
   background: var(--color-surface-1);
   border: 1px solid var(--color-border-subtle);
@@ -8,21 +57,41 @@
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+  backface-visibility: hidden;
+  perspective: 1000px;
+
+  /* Объединенные стили для верстки и свайпа */
+  width: 100%;
+  position: relative;
+  z-index: 2;
+  transform: translateX(0);
+  transition:
+    border-color 0.4s,
+    background-color 0.4s,
+    box-shadow 0.4s;
+  flex-shrink: 0; /* Дублируем защиту от сжатия для надежности */
 
   @include mobile {
     padding: 14px 16px;
   }
 
   &--completed {
-    opacity: 0.6;
+    background: var(--color-surface-1);
+
     .task-item__title {
       text-decoration: line-through;
       color: var(--color-text-muted) !important;
     }
+
+    .task-item__title-area,
+    .task-item__expanded-inner {
+      opacity: 0.5;
+      transition: opacity 0.3s;
+    }
   }
 
-  /* --- 1. ШАПКА --- */
+  /* --- ШАПКА --- */
   &__header {
     display: flex;
     align-items: center;
@@ -59,15 +128,14 @@
     position: relative;
   }
 
-  /* УВЕЛИЧЕННЫЙ ШРИФТ НАЗВАНИЯ */
   &__title {
-    font-size: 18px; /* Сделали крупнее */
+    font-size: 18px;
     font-weight: 600;
     color: var(--color-text-primary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    transform-origin: left center; /* Важно для плавного увеличения */
+    transform-origin: left center;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
@@ -120,7 +188,7 @@
     }
   }
 
-  /* --- 2. РАСКРЫВАЮЩИЙСЯ КОНТЕНТ --- */
+  /* --- РАСКРЫВАЮЩИЙСЯ КОНТЕНТ --- */
   &__expanded {
     display: grid;
     grid-template-rows: 0fr;
@@ -136,7 +204,6 @@
     gap: 16px;
   }
 
-  /* КРАСИВЫЕ РАМКИ ДЛЯ БЭЙДЖЕЙ */
   &__full-badges {
     display: flex;
     justify-content: center;
@@ -156,9 +223,8 @@
     padding: 6px 14px;
     border-radius: 8px;
     background: transparent;
-    /* ТРЮК: Рамка берет цвет из inline-style color, который мы передали! */
     border: 1px solid currentColor;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); /* Легкая тень для объема */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   }
 
   &__notes-section {
@@ -209,7 +275,6 @@
     }
   }
 
-  /* ЗАГЛУШКА ДЛЯ ТЕГОВ */
   &__placeholder-tag {
     font-style: italic;
     opacity: 0.3 !important;
@@ -238,28 +303,23 @@
       background: var(--color-surface-2);
       box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
 
-      /* 1. Плавное смещение названия правее + увеличение и подсветка */
       .task-item__title {
         color: var(--color-accent-primary);
         font-weight: 700;
-        /* Смещаем на 40px вправо и чуть увеличиваем размер */
         transform: translateX(40px) scale(1.05);
       }
 
-      /* 2. Мини-бэйджи исчезают */
       .task-item__mini-badges {
         opacity: 0;
         max-width: 0;
         gap: 0;
       }
 
-      /* 3. Кнопки действий */
       .task-item__actions {
         opacity: 1;
         pointer-events: auto;
       }
 
-      /* 4. Открытие контента */
       .task-item__expanded {
         grid-template-rows: 1fr;
         margin-top: 12px;
@@ -294,5 +354,79 @@
     .task-item__full-badges {
       justify-content: flex-start;
     }
+  }
+}
+.task-action-toast {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 15, 20, 0.5);
+  backdrop-filter: blur(6px);
+  pointer-events: none; // Не блокируем скролл интерфейса под ним
+  animation: toastFadeIn 0.2s ease-out forwards;
+
+  &__content {
+    background: var(--bg-secondary, #1e1e2d);
+    border: 1px solid var(--color-border-subtle, #2a2a3c);
+    padding: 32px 40px;
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    transform: scale(0.9);
+    animation: toastPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+
+    span {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 0.5px;
+    }
+  }
+
+  &__icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &--success {
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+      box-shadow: 0 0 30px rgba(16, 185, 129, 0.2);
+    }
+
+    &--danger {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+      box-shadow: 0 0 30px rgba(239, 68, 68, 0.2);
+    }
+  }
+}
+
+@keyframes toastFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes toastPop {
+  from {
+    transform: scale(0.8) translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
   }
 }

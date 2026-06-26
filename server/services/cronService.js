@@ -60,7 +60,11 @@ export const executeCron = async (req, res) => {
                 minute: "2-digit",
               },
             );
-            const text = `🔔 <b>Напоминание!</b>\n\n📝 Задача: <b>${task.title}</b>\n⏰ Дедлайн: ${formattedDeadline}`;
+
+            const header = task.important
+              ? "❗️❗️❗️ <b>ВАЖНОЕ НАПОМИНАНИЕ</b>"
+              : "🔔 <b>Напоминание!</b>";
+            const text = `${header}\n\n📝 Задача: <b>${task.title}</b>\n⏰ Дедлайн: ${formattedDeadline}`;
             telegramPromises.push(sendTelegramMessage(userChatId, text));
           }
 

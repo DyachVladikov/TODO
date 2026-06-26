@@ -1,0 +1,409 @@
+.calendar-modal {
+  width: 90%;
+  max-width: 900px;
+  padding: 24px;
+  background: var(--bg-secondary, #1e1e2d);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+}
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+
+  &-nav {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .calendar-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary, #fff);
+    margin: 0;
+    min-width: 140px;
+    text-align: center;
+  }
+
+  .calendar-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted, #9ca3af);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s;
+
+    &:hover {
+      background: var(--bg-hover, #2a2a3c);
+      color: var(--text-primary, #fff);
+    }
+  }
+
+  .calendar-close {
+    position: static;
+  }
+}
+
+.calendar-grid-container {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  overflow-y: auto;
+  padding-right: 4px;
+  padding-bottom: 8px; // Место для скролла
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--bg-hover, #2a2a3c);
+    border-radius: 4px;
+  }
+}
+
+.calendar-weekday {
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted, #9ca3af);
+  padding-bottom: 8px;
+}
+
+.calendar-day {
+  background: var(--bg-primary, #151521);
+  border-radius: 8px;
+  aspect-ratio: 1 / 1;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: border-color 0.2s;
+
+  &:hover {
+    border-color: var(--bg-hover, #2a2a3c);
+  }
+
+  &--empty {
+    background: transparent;
+    border: none;
+    pointer-events: none;
+  }
+
+  &--weekend .calendar-day__number {
+    color: #f87171;
+  }
+
+  &--holiday {
+    background: rgba(248, 113, 113, 0.05);
+    border-color: rgba(248, 113, 113, 0.2);
+
+    .calendar-day__number {
+      color: #ef4444;
+      font-weight: 700;
+    }
+  }
+
+  &--today {
+    border-color: var(--color-primary, #8b5cf6);
+    .calendar-day__number {
+      background: var(--color-primary, #8b5cf6);
+      color: #fff;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: -4px;
+      margin-left: -4px;
+    }
+  }
+
+  &.active {
+    border-color: var(--color-primary, #8b5cf6);
+    background: var(--bg-hover, #2a2a3c);
+  }
+
+  &__number {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-primary, #fff);
+  }
+
+  &__summary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: var(--bg-hover, #2a2a3c);
+    padding: 4px 6px;
+    border-radius: 6px;
+    margin-top: auto;
+  }
+
+  &__icon-success {
+    color: #10b981;
+  }
+
+  &__icon-pending {
+    color: var(--color-primary, #8b5cf6);
+  }
+
+  &__summary-text {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-primary, #fff);
+  }
+}
+
+// === БОКОВАЯ ПАНЕЛЬ С ЗАДАЧАМИ ===
+.calendar-side-panel {
+  position: absolute;
+  top: 32px;
+  max-height: calc(100% - 32px);
+  width: calc(50% - 12px);
+  background: rgba(30, 30, 45, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--color-primary, #8b5cf6);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+
+  // Анимация только на появление. На закрытие анимации нет — панель исчезнет резко
+  animation: fadeIn 0.2s ease-out forwards;
+
+  &--right {
+    right: 0;
+  }
+
+  &--left {
+    left: 0;
+  }
+}
+
+.side-panel {
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--bg-hover, #2a2a3c);
+    flex-shrink: 0;
+  }
+
+  &__title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary, #fff);
+    margin: 0;
+  }
+
+  &__close-mobile {
+    display: none;
+    background: transparent;
+    border: none;
+    color: var(--text-muted, #9ca3af);
+    cursor: pointer;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    padding-right: 4px;
+
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: var(--bg-hover, #2a2a3c);
+      border-radius: 4px;
+    }
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--bg-primary, #151521);
+    border: 1px solid transparent;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    cursor: pointer; // Курсор-указатель, так как теперь элементы кликабельны
+
+    &:hover {
+      background: var(--bg-hover, #2a2a3c);
+      border-color: rgba(139, 92, 246, 0.5);
+      transform: translateX(4px);
+    }
+
+    &--completed {
+      opacity: 0.5;
+
+      .side-panel__item-title {
+        text-decoration: line-through;
+        color: var(--text-muted, #9ca3af);
+      }
+      .side-panel__item-time {
+        color: var(--text-muted, #9ca3af);
+      }
+    }
+
+    &-content {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+    }
+
+    &-indicator {
+      flex-shrink: 0;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--color-primary, #8b5cf6);
+      box-shadow: 0 0 8px rgba(139, 92, 246, 0.4);
+
+      &--completed {
+        background: #10b981;
+        box-shadow: none;
+      }
+
+      &--overdue {
+        background: var(--color-status-error, #ef4444);
+        box-shadow: 0 0 8px rgba(239, 68, 68, 0.5);
+      }
+    }
+
+    &-title {
+      font-size: 0.85rem;
+      color: var(--text-primary, #fff);
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+    &-time {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.75rem;
+      color: #f97316; // Приятный оранжевый цвет для времени
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .calendar-header-nav {
+    gap: 8px;
+  }
+
+  .calendar-day {
+    padding: 4px;
+    &__number {
+      font-size: 0.75rem;
+    }
+    &__summary {
+      padding: 2px 4px;
+    }
+    &__summary-text {
+      font-size: 0.65rem;
+    }
+  }
+
+  .calendar-spacer {
+    display: none;
+  }
+
+  .calendar-side-panel {
+    width: 100%;
+    left: 0;
+    right: 0;
+  }
+
+  .side-panel__close-mobile {
+    display: block;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Адаптация под мобильные
+@media (max-width: 768px) {
+  .calendar-header-nav {
+    gap: 8px;
+  }
+
+  .calendar-day {
+    padding: 4px;
+
+    &__number {
+      font-size: 0.75rem;
+    }
+
+    &__summary {
+      padding: 2px 4px;
+    }
+
+    &__summary-text {
+      font-size: 0.65rem;
+    }
+  }
+
+  .calendar-spacer {
+    display: none;
+  }
+
+  .calendar-side-panel {
+    width: 100%; // На мобилках панель раскрывается на 100%
+    left: 0;
+    right: 0;
+  }
+
+  .side-panel__close-mobile {
+    display: block; // Показываем крестик для закрытия
+  }
+}

@@ -70,10 +70,30 @@ const TaskItem = ({
 
   const hasTags = task.tags && task.tags.length > 0;
 
-  const isOverdue =
-    task.deadline &&
-    !task.completed &&
-    new Date(task.deadline).getTime() < new Date().getTime();
+  const deadlineDate = task.deadline ? new Date(task.deadline) : null;
+  const hasSpecificTime = deadlineDate
+    ? deadlineDate.getHours() !== 0 || deadlineDate.getMinutes() !== 0
+    : false;
+
+  let isOverdue = false;
+  if (deadlineDate && !task.completed) {
+    if (hasSpecificTime) {
+      isOverdue = deadlineDate.getTime() < new Date().getTime();
+    } else {
+      const now = new Date();
+      const todayStart = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+      ).getTime();
+      const deadlineStart = new Date(
+        deadlineDate.getFullYear(),
+        deadlineDate.getMonth(),
+        deadlineDate.getDate(),
+      ).getTime();
+      isOverdue = deadlineStart < todayStart;
+    }
+  }
 
   return (
     <div
@@ -160,7 +180,7 @@ const TaskItem = ({
               </span>
             </div>
 
-            {task.deadline && (
+            {task.deadline && hasSpecificTime && (
               <div
                 className="task-badge"
                 style={{

@@ -1,11 +1,18 @@
 import { useState, useRef, useEffect } from "react";
-import { Plus, Search, Folder, Tag, Flag, ChevronDown } from "lucide-react";
+import {
+  Plus,
+  Search,
+  Folder,
+  Tag,
+  Flag,
+  ChevronDown,
+  ArrowUpDown,
+} from "lucide-react";
 import TaskItem from "./../TaskItem";
 import type { Task } from "@/api/types";
 import { useFolders } from "@/hooks/useFolders";
 import "./TaskBoard.scss";
 
-// Кастомный Dropdown с нативным селектом поверх
 const CustomDropdown = ({ icon, value, options, onChange }: any) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -27,7 +34,6 @@ const CustomDropdown = ({ icon, value, options, onChange }: any) => {
 
   return (
     <div className="custom-dropdown" ref={dropdownRef}>
-      {/* Невидимый нативный селект для мобилок */}
       <select
         className="custom-dropdown__native"
         value={value}
@@ -95,6 +101,7 @@ const TaskBoard = ({
   const [filterProject, setFilterProject] = useState("all");
   const [filterPriority, setFilterPriority] = useState("all");
   const [filterTag, setFilterTag] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
 
   const { folders } = useFolders();
 
@@ -107,10 +114,16 @@ const TaskBoard = ({
   ];
 
   const priorityOptions = [
-    { value: "all", label: "Любая сложность" },
-    { value: "low", label: "Легко (Низкий)" },
-    { value: "medium", label: "Средне" },
-    { value: "high", label: "Сложно (Срочно)" },
+    { value: "all", label: "Любой Приоритет" },
+    { value: "low", label: "Низкий" },
+    { value: "medium", label: "Средний" },
+    { value: "high", label: "Срочный" },
+  ];
+
+  const sortOptions = [
+    { value: "newest", label: "Сначала новые" },
+    { value: "deadline_asc", label: "Ближайшие дедлайны" },
+    { value: "deadline_desc", label: "Дальние дедлайны" },
   ];
 
   const filteredTasks = tasks.filter((task) => {
@@ -130,6 +143,16 @@ const TaskBoard = ({
           taskDate.getDate() === today.getDate() &&
           taskDate.getMonth() === today.getMonth() &&
           taskDate.getFullYear() === today.getFullYear();
+      }
+    } else if (activeFilter === "weekly") {
+      if (task.deadline) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const nextWeek = new Date(today);
+        nextWeek.setDate(nextWeek.getDate() + 7);
+        nextWeek.setHours(23, 59, 59, 999);
+        const taskDate = new Date(task.deadline);
+        passSidebar = taskDate >= today && taskDate <= nextWeek;
       }
     } else {
       passSidebar = task.projectId === activeFilter;
@@ -159,10 +182,30 @@ const TaskBoard = ({
   });
 
   const sortedTasks = [...filteredTasks].sort((a, b) => {
-    if (a.completed === b.completed) {
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    // Выполненные задачи всегда падают вниз
+    if (a.completed !== b.completed) {
+      return a.completed ? 1 : -1;
     }
-    return a.completed ? 1 : -1;
+
+    // Логика сортировки по датам
+    if (sortBy === "deadline_asc" || sortBy === "deadline_desc") {
+      // Задачи без дедлайна кидаем в самый конец списка при сортировке по дате
+      if (!a.deadline && !b.deadline) {
+        return (
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      }
+      if (!a.deadline) return 1;
+      if (!b.deadline) return -1;
+
+      const timeA = new Date(a.deadline).getTime();
+      const timeB = new Date(b.deadline).getTime();
+
+      return sortBy === "deadline_asc" ? timeA - timeB : timeB - timeA;
+    }
+
+    // Дефолт: Сначала новые (по дате добавления)
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 
   const getBoardTitle = () => {
@@ -170,6 +213,7 @@ const TaskBoard = ({
     if (activeFilter === "completed") return "Завершённые";
     if (activeFilter === "important") return "Важные";
     if (activeFilter === "today") return "Сегодня";
+    if (activeFilter === "weekly") return "Ближайшие 7 дней";
     if (activeFilter === "work") return "Работа";
     if (activeFilter === "home") return "Дом";
     if (activeFilter === "ideas") return "Идеи";
@@ -217,6 +261,13 @@ const TaskBoard = ({
           options={priorityOptions}
           value={filterPriority}
           onChange={setFilterPriority}
+        />
+
+        <CustomDropdown
+          icon={<ArrowUpDown size={16} />}
+          options={sortOptions}
+          value={sortBy}
+          onChange={setSortBy}
         />
 
         <div className="filter-input-group filter-input-group--tag">

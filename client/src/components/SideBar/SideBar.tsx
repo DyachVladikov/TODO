@@ -2,6 +2,8 @@ import { useState } from "react";
 import {
   Inbox,
   Calendar,
+  CalendarDays,
+  CalendarRange,
   Star,
   CheckCircle,
   CheckSquare,
@@ -15,7 +17,9 @@ import {
 import { useTasks } from "@/hooks/useTasks";
 import { useLogout } from "@/hooks/useApi";
 import { useFolders } from "@/hooks/useFolders";
+import CalendarModal from "@/components/CalendarModal";
 import "./SideBar.scss";
+import type { Task } from "@/api/types";
 
 interface AddFolderModalProps {
   onClose: () => void;
@@ -89,15 +93,28 @@ const AddFolderModal = ({ onClose, onSave }: AddFolderModalProps) => {
 interface SidebarProps {
   activeFilter: string;
   setActiveFilter: (filter: string) => void;
+  onSelectTask: (task: Task) => void;
 }
 
-const Sidebar = ({ activeFilter, setActiveFilter }: SidebarProps) => {
+const Sidebar = ({
+  activeFilter,
+  setActiveFilter,
+  onSelectTask,
+}: SidebarProps) => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
   const { data: tasks = [] } = useTasks();
   const { folders, addFolder, deleteFolder, isAdding } = useFolders();
   const logout = useLogout();
   const isTelegram = Boolean(window.Telegram?.WebApp?.initDataUnsafe?.user);
+
+  const allTasksCount = tasks.filter((task) => !task.completed).length;
+  const importantTasksCount = tasks.filter(
+    (task) => task.important && !task.completed,
+  ).length;
+  const completedTasksCount = tasks.filter((task) => task.completed).length;
 
   const todayTasksCount = tasks.filter((task) => {
     if (!task.deadline || task.completed) return false;
@@ -109,6 +126,23 @@ const Sidebar = ({ activeFilter, setActiveFilter }: SidebarProps) => {
       taskDate.getFullYear() === today.getFullYear()
     );
   }).length;
+
+  const weeklyTasksCount = tasks.filter((task) => {
+    if (!task.deadline || task.completed) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const nextWeek = new Date(today);
+    nextWeek.setDate(nextWeek.getDate() + 7);
+    nextWeek.setHours(23, 59, 59, 999);
+    const taskDate = new Date(task.deadline);
+    return taskDate >= today && taskDate <= nextWeek;
+  }).length;
+
+  const getProjectCount = (projectId: string) => {
+    return tasks.filter(
+      (task) => task.projectId === projectId && !task.completed,
+    ).length;
+  };
 
   const handleAddFolderSave = (name: string) => {
     addFolder(name);
@@ -167,6 +201,9 @@ const Sidebar = ({ activeFilter, setActiveFilter }: SidebarProps) => {
             >
               <Inbox size={18} />
               <span className="sidebar__text">Все задачи</span>
+              {allTasksCount > 0 && (
+                <span className="sidebar__badge">{allTasksCount}</span>
+              )}
             </button>
 
             <button
@@ -181,11 +218,24 @@ const Sidebar = ({ activeFilter, setActiveFilter }: SidebarProps) => {
             </button>
 
             <button
+              className={`sidebar__item ${activeFilter === "weekly" ? "active" : ""}`}
+              onClick={() => handleFilterSelect("weekly")}
+            >
+              <CalendarDays size={18} />
+              <span className="sidebar__text">Ближайшие 7 дней</span>
+              {weeklyTasksCount > 0 && (
+                <span className="sidebar__badge">{weeklyTasksCount}</span>
+              )}
+            </button>
+            <button
               className={`sidebar__item ${activeFilter === "important" ? "active" : ""}`}
               onClick={() => handleFilterSelect("important")}
             >
               <Star size={18} />
               <span className="sidebar__text">Важные</span>
+              {importantTasksCount > 0 && (
+                <span className="sidebar__badge">{importantTasksCount}</span>
+              )}
             </button>
 
             <button
@@ -194,12 +244,25 @@ const Sidebar = ({ activeFilter, setActiveFilter }: SidebarProps) => {
             >
               <CheckCircle size={18} />
               <span className="sidebar__text">Завершённые</span>
+              {completedTasksCount > 0 && (
+                <span className="sidebar__badge">{completedTasksCount}</span>
+              )}
+            </button>
+            <button
+              className="sidebar__item"
+              onClick={() => {
+                setIsCalendarOpen(true);
+                setIsMobileOpen(false);
+              }}
+            >
+              <CalendarRange size={18} />
+              <span className="sidebar__text">Календарь</span>
             </button>
           </nav>
 
           <div className="sidebar__projects">
             <div className="sidebar__projects-header">
-              <h3 className="sidebar__text">ПРОЕКТЫ</h3>
+              <h3 className="sidebar__text">ПАПКИ</h3>
               <button
                 className="sidebar__projects-add"
                 onClick={() => setIsFolderModalOpen(true)}
@@ -211,34 +274,46 @@ const Sidebar = ({ activeFilter, setActiveFilter }: SidebarProps) => {
             </div>
 
             <div className="sidebar__projects-list">
-              {defaultProjects.map((project) => (
-                <button
-                  key={project.id}
-                  className={`sidebar__item sidebar__item--project ${activeFilter === project.id ? "active" : ""}`}
-                  onClick={() => handleFilterSelect(project.id)}
-                >
-                  <FolderIcon size={18} style={{ color: project.color }} />
-                  <span className="sidebar__text">{project.label}</span>
-                </button>
-              ))}
-
-              {folders.map((folder) => (
-                <button
-                  key={folder.id}
-                  className={`sidebar__item sidebar__item--project ${activeFilter === folder.id ? "active" : ""}`}
-                  onClick={() => handleFilterSelect(folder.id)}
-                >
-                  <FolderIcon size={18} style={{ color: "#FFFFFF" }} />
-                  <span className="sidebar__text">{folder.name}</span>
-                  <div
-                    className="sidebar__folder-delete"
-                    onClick={(e) => handleDeleteFolder(e, folder.id)}
-                    title="Удалить папку"
+              {defaultProjects.map((project) => {
+                const count = getProjectCount(project.id);
+                return (
+                  <button
+                    key={project.id}
+                    className={`sidebar__item sidebar__item--project ${activeFilter === project.id ? "active" : ""}`}
+                    onClick={() => handleFilterSelect(project.id)}
                   >
-                    <X size={14} />
-                  </div>
-                </button>
-              ))}
+                    <FolderIcon size={18} style={{ color: project.color }} />
+                    <span className="sidebar__text">{project.label}</span>
+                    {count > 0 && (
+                      <span className="sidebar__badge">{count}</span>
+                    )}
+                  </button>
+                );
+              })}
+
+              {folders.map((folder) => {
+                const count = getProjectCount(folder.id);
+                return (
+                  <button
+                    key={folder.id}
+                    className={`sidebar__item sidebar__item--project ${activeFilter === folder.id ? "active" : ""}`}
+                    onClick={() => handleFilterSelect(folder.id)}
+                  >
+                    <FolderIcon size={18} style={{ color: "#FFFFFF" }} />
+                    <span className="sidebar__text">{folder.name}</span>
+                    {count > 0 && (
+                      <span className="sidebar__badge">{count}</span>
+                    )}
+                    <div
+                      className="sidebar__folder-delete"
+                      onClick={(e) => handleDeleteFolder(e, folder.id)}
+                      title="Удалить папку"
+                    >
+                      <X size={14} />
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -260,6 +335,14 @@ const Sidebar = ({ activeFilter, setActiveFilter }: SidebarProps) => {
         <AddFolderModal
           onClose={() => setIsFolderModalOpen(false)}
           onSave={handleAddFolderSave}
+        />
+      )}
+
+      {isCalendarOpen && (
+        <CalendarModal
+          onClose={() => setIsCalendarOpen(false)}
+          tasks={tasks}
+          onSelectTask={onSelectTask}
         />
       )}
     </>

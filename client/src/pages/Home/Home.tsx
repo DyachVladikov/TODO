@@ -4,7 +4,7 @@ import TaskBoard from "@/components/TaskBoard/TaskBoard";
 import TaskDetails from "@/components/TaskDetails/TaskDetails";
 import CreateTaskModal from "@/components/CreateTaskModal/CreateTaskModal";
 import Loader from "@/components/Loader";
-import type { TaskPayload } from "@/api/types";
+import type { TaskPayload, Task } from "@/api/types"; // <--- Добавили Task сюда
 import {
   useTasks,
   useCreateTask,
@@ -43,20 +43,29 @@ const Home = () => {
     });
   };
 
+  // Вынесли логику выбора задачи в отдельную функцию
+  const handleSelectTask = (task: Task) => {
+    setSelectedTaskId(task.id);
+  };
+
   if (isLoading) {
     return <Loader />;
   }
 
   return (
     <div className="home">
-      <Sidebar activeFilter={activeFilter} setActiveFilter={setActiveFilter} />
+      <Sidebar
+        activeFilter={activeFilter}
+        setActiveFilter={setActiveFilter}
+        onSelectTask={handleSelectTask}
+      />
 
       <TaskBoard
         activeFilter={activeFilter}
         tasks={tasks}
         onUpdateTask={handleUpdateTask}
         onDeleteTask={handleDeleteTask}
-        onSelectTask={(task) => setSelectedTaskId(task.id)}
+        onSelectTask={handleSelectTask}
         onOpenModal={() => setIsModalOpen(true)}
       />
 

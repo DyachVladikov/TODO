@@ -1,0 +1,6 @@
+/* Модалка создания папки.
+   Использует общую инфраструктуру модалок (.modal-overlay, .modal-overlay--nested,
+   .modal-content, .modal-header, .modal-form, .modal-footer, .btn, .form-*),
+   которая объявлена в глобальных стилях модалок. Собственных стилей у компонента
+   нет — модификаторы (.modal-content--compact, .compact-*, .gradient-btn)
+   оставлены без переопределений, чтобы не менять текущий вид. */

@@ -1,0 +1,42 @@
+/* Компактная модалка точного напоминания.
+   Базовые классы модалки (.modal-overlay, .modal-content, .modal-header,
+   .modal-form, .modal-footer, .btn, .form-*) — общие и живут в глобальных
+   стилях модалок. Здесь только то, что эксклюзивно для этого окна. */
+.modal-content--small {
+  max-width: 340px !important;
+  z-index: 10000 !important;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5) !important;
+
+  .compact-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+
+    .compact-header-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .header-icon {
+        color: var(--color-accent-primary);
+      }
+
+      h3 {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0;
+        color: var(--color-text-primary);
+      }
+    }
+  }
+}
+
+.custom-number-input::-webkit-outer-spin-button,
+.custom-number-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.custom-number-input[type="number"] {
+  -moz-appearance: textfield;
+}

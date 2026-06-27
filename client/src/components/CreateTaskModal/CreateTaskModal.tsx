@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
   X,
   Calendar,
@@ -7,186 +7,14 @@ import {
   AlignLeft,
   Tag,
   Star,
-  ChevronDown,
   Clock,
   Bell,
 } from "lucide-react";
 import type { Priority } from "@/api/types";
 import { useFolders } from "@/hooks/useFolders";
+import ModalDropdown from "@/components/ModalDropdown";
+import CustomReminderModal from "@/components/CustomReminderModal";
 import "./CreateTaskModal.scss";
-
-const ModalDropdown = ({ icon, value, options, onChange, disabled }: any) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const selectedOption = options.find((o: any) => o.value === value);
-
-  return (
-    <div
-      className={`modal-custom-select ${disabled ? "disabled" : ""}`}
-      ref={dropdownRef}
-    >
-      <select
-        className="modal-custom-select__native"
-        value={value}
-        onChange={(e) => {
-          if (disabled) return;
-          onChange(e.target.value);
-          setIsOpen(false);
-        }}
-        disabled={disabled}
-      >
-        {options.map((opt: any) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
-
-      <button
-        className={`modal-custom-select__toggle ${isOpen ? "active" : ""}`}
-        onClick={() => !disabled && setIsOpen(!isOpen)}
-        type="button"
-        disabled={disabled}
-      >
-        {icon}
-        <span>{selectedOption?.label || options[0]?.label}</span>
-        <ChevronDown size={16} className="icon-chevron" />
-      </button>
-
-      {isOpen && !disabled && (
-        <div className="modal-custom-select__menu">
-          {options.map((opt: any) => (
-            <button
-              key={opt.value}
-              type="button"
-              className={`modal-custom-select__item ${opt.value === value ? "selected" : ""}`}
-              onClick={() => {
-                onChange(opt.value);
-                setIsOpen(false);
-              }}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
-
-interface CustomReminderModalProps {
-  onClose: () => void;
-  onSave: (minutes: number, label: string) => void;
-}
-
-const CustomReminderModal = ({ onClose, onSave }: CustomReminderModalProps) => {
-  const [amount, setAmount] = useState<number | string>(10);
-  const [unit, setUnit] = useState<string>("minutes");
-
-  const handleConfirm = (e: React.FormEvent) => {
-    e.preventDefault();
-    const numAmount = Number(amount);
-    if (numAmount <= 0) return;
-
-    let minutes = numAmount;
-    let unitLabel = "мин.";
-
-    if (unit === "hours") {
-      minutes = numAmount * 60;
-      unitLabel = "ч.";
-    } else if (unit === "days") {
-      minutes = numAmount * 1440;
-      unitLabel = "дн.";
-    }
-
-    onSave(minutes, `За ${numAmount} ${unitLabel}`);
-    onClose();
-  };
-
-  const unitOptions = [
-    { value: "minutes", label: "Минут" },
-    { value: "hours", label: "Часов" },
-    { value: "days", label: "Дней" },
-  ];
-
-  return (
-    <div className="modal-overlay modal-overlay--nested" onClick={onClose}>
-      <div
-        className="modal-content modal-content--small"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <header className="modal-header compact-header">
-          <div className="compact-header-title">
-            <Bell size={18} className="header-icon" />
-            <h3>Точное напоминание</h3>
-          </div>
-          <button className="modal-close" onClick={onClose} type="button">
-            <X size={18} />
-          </button>
-        </header>
-        <form
-          onSubmit={handleConfirm}
-          className="modal-form modal-form--reminder"
-        >
-          <div
-            className="form-row"
-            style={{ gap: "10px", marginBottom: "20px" }}
-          >
-            <div className="form-group" style={{ flex: 1 }}>
-              <input
-                type="number"
-                className="form-input custom-number-input"
-                min="1"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                autoFocus
-              />
-            </div>
-            <div className="form-group" style={{ flex: 1.5 }}>
-              <ModalDropdown
-                icon={
-                  <Clock
-                    size={16}
-                    style={{ color: "var(--color-text-muted)" }}
-                  />
-                }
-                options={unitOptions}
-                value={unit}
-                onChange={setUnit}
-              />
-            </div>
-          </div>
-          <footer className="modal-footer">
-            <button
-              type="button"
-              className="btn btn--secondary"
-              onClick={onClose}
-            >
-              Отмена
-            </button>
-            <button type="submit" className="btn btn--primary">
-              Применить
-            </button>
-          </footer>
-        </form>
-      </div>
-    </div>
-  );
-};
 
 interface CreateTaskModalProps {
   isOpen: boolean;

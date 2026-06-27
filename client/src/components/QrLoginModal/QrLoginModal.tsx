@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import { X } from "lucide-react";
-import "./QrLoginModal.scss"; // Подключаем наши стили
+import { useQrLogin } from "@/hooks/useQrLogin";
+import "./QrLoginModal.scss";
 
 interface QrLoginModalProps {
   botUsername: string;
@@ -14,51 +14,10 @@ const QrLoginModal = ({
   onClose,
   onSuccess,
 }: QrLoginModalProps) => {
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [status, setStatus] = useState<
-    "loading" | "waiting" | "success" | "error"
-  >("loading");
-
-  useEffect(() => {
-    const fetchSession = async () => {
-      try {
-        const res = await fetch(
-          "https://todo-five-lovat-55.vercel.app/api/auth/qr/generate",
-        );
-        const data = await res.json();
-        setSessionId(data.sessionId);
-        setStatus("waiting");
-      } catch (err) {
-        setStatus("error");
-      }
-    };
-    fetchSession();
-  }, []);
-
-  useEffect(() => {
-    if (status !== "waiting" || !sessionId) return;
-    const interval = setInterval(async () => {
-      try {
-        const res = await fetch(
-          `https://todo-five-lovat-55.vercel.app/api/auth/qr/check/${sessionId}`,
-        );
-        const data = await res.json();
-        if (data.status === "completed" && data.token) {
-          clearInterval(interval);
-          setStatus("success");
-          onSuccess(data.token);
-        } else if (data.status === "expired") {
-          clearInterval(interval);
-          setStatus("error");
-        }
-      } catch (err) {
-        console.error("Ошибка проверки статуса");
-      }
-    }, 2000);
-    return () => clearInterval(interval);
-  }, [sessionId, status, onSuccess]);
-
-  const telegramLink = `https://t.me/${botUsername}?start=login_${sessionId}`;
+  const { sessionId, status, telegramLink } = useQrLogin({
+    botUsername,
+    onSuccess,
+  });
 
   return (
     <div className="qr-modal__overlay">

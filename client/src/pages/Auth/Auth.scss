@@ -66,6 +66,44 @@
     grid-template-rows: 1fr;
   }
 }
+/* Экраны авторизации внутри Telegram (загрузка / ошибка) */
+.auth-tg {
+  display: flex;
+  height: 100vh;
+  justify-content: center;
+
+  &--loading {
+    align-items: center;
+    color: var(--color-accent-primary);
+    background: var(--color-surface-1);
+  }
+
+  &--error {
+    flex-direction: column;
+    padding: 20px;
+    color: var(--color-status-error);
+    text-align: center;
+  }
+
+  &__code {
+    background: var(--color-surface-2);
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 10px;
+    word-break: break-word;
+  }
+
+  &__retry {
+    margin-top: 20px;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    background: var(--color-surface-3);
+    color: white;
+    cursor: pointer;
+  }
+}
+
 .auth__qr-section {
   width: 100%;
   max-width: 400px; /* Должно совпадать с шириной твоей формы AuthForm */

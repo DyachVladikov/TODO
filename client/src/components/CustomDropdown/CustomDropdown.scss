@@ -1,0 +1,121 @@
+@use "@/styles/helpers/index" as *;
+
+/* КАСТОМНЫЙ ДРОПДАУН (панель фильтрации) */
+.custom-dropdown {
+  position: relative;
+  min-width: 170px;
+  height: 38px;
+
+  @include mobile {
+    flex: 1; /* На мобилке занимают всё свободное место */
+    min-width: calc(50% - 6px);
+  }
+
+  &__toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    height: 38px; /* Жестко фиксируем высоту вровень с остальными инпутами */
+    background: var(--color-surface-1);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: 8px;
+    padding: 0 12px;
+    color: var(--color-text-primary);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap; /* Запрещаем кнопке ломаться на 2 строки */
+
+    &:hover,
+    &.active {
+      border-color: var(--color-accent-primary);
+      background: var(--color-surface-2);
+      color: var(--color-accent-primary);
+    }
+
+    span {
+      flex: 1;
+      text-align: left;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap; /* Длинный текст обрезается троеточием */
+    }
+
+    .icon-chevron {
+      color: var(--color-text-muted);
+      transition: transform 0.2s;
+      flex-shrink: 0; /* Не даем иконке сплющиваться */
+    }
+
+    &.active .icon-chevron {
+      transform: rotate(180deg);
+    }
+  }
+
+  &__menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    width: 100%;
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-border-strong);
+    border-radius: 8px;
+    padding: 4px;
+    z-index: 100;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    color: var(--color-text-primary);
+    font-size: 14px;
+    cursor: pointer;
+    transition:
+      background 0.2s,
+      color 0.2s;
+
+    &:hover {
+      background: var(--color-surface-3);
+    }
+
+    &.selected {
+      background: rgba(139, 92, 246, 0.15);
+      color: #8b5cf6;
+      font-weight: 500;
+    }
+  }
+
+  /* НАТИВНЫЙ СЕЛЕКТ ДЛЯ МОБИЛОК (Полностью невидим) */
+  &__native {
+    display: none;
+    @include mobile {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      z-index: 10;
+      cursor: pointer;
+      appearance: none;
+    }
+  }
+}
+
+// Отключаем всплывающее кастомное меню на мобилках
+@include mobile {
+  .custom-dropdown__menu {
+    display: none !important;
+  }
+}

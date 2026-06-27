@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Inbox,
   Calendar,
@@ -12,83 +11,13 @@ import {
   LogOut,
   X,
   Menu,
-  FolderPlus,
 } from "lucide-react";
-import { useTasks } from "@/hooks/useTasks";
-import { useLogout } from "@/hooks/useApi";
-import { useFolders } from "@/hooks/useFolders";
-import CalendarModal from "@/components/CalendarModal";
-import "./SideBar.scss";
 import type { Task } from "@/api/types";
-
-interface AddFolderModalProps {
-  onClose: () => void;
-  onSave: (name: string) => void;
-}
-
-const AddFolderModal = ({ onClose, onSave }: AddFolderModalProps) => {
-  const [name, setName] = useState("");
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (name.trim()) {
-      onSave(name.trim());
-      onClose();
-    }
-  };
-
-  return (
-    <div className="modal-overlay modal-overlay--nested" onClick={onClose}>
-      <div
-        className="modal-content modal-content--compact"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <header className="modal-header compact-header">
-          <div className="compact-header-title">
-            <FolderPlus size={18} className="header-icon" />
-            <h3>Новая папка</h3>
-          </div>
-          <button className="modal-close" onClick={onClose} type="button">
-            <X size={18} />
-          </button>
-        </header>
-        <form onSubmit={handleSubmit} className="modal-form">
-          <div
-            className="form-row compact-row"
-            style={{ marginBottom: "20px" }}
-          >
-            <div className="form-group" style={{ flex: 1 }}>
-              <input
-                type="text"
-                className="form-input"
-                placeholder="Название папки..."
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                autoFocus
-              />
-            </div>
-          </div>
-          <footer className="modal-footer compact-footer">
-            <button
-              type="button"
-              className="btn btn--secondary"
-              onClick={onClose}
-            >
-              Отмена
-            </button>
-            <button
-              type="submit"
-              className="btn btn--primary gradient-btn"
-              disabled={!name.trim()}
-            >
-              Создать
-            </button>
-          </footer>
-        </form>
-      </div>
-    </div>
-  );
-};
+import AddFolderModal from "@/components/AddFolderModal";
+import CalendarModal from "@/components/CalendarModal";
+import { useSidebar } from "@/hooks/useSidebar";
+import { DEFAULT_PROJECTS } from "@/utils/task";
+import "./SideBar.scss";
 
 interface SidebarProps {
   activeFilter: string;
@@ -101,75 +30,28 @@ const Sidebar = ({
   setActiveFilter,
   onSelectTask,
 }: SidebarProps) => {
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-
-  const { data: tasks = [] } = useTasks();
-  const { folders, addFolder, deleteFolder, isAdding } = useFolders();
-  const logout = useLogout();
-  const isTelegram = Boolean(window.Telegram?.WebApp?.initDataUnsafe?.user);
-
-  const allTasksCount = tasks.filter((task) => !task.completed).length;
-  const importantTasksCount = tasks.filter(
-    (task) => task.important && !task.completed,
-  ).length;
-  const completedTasksCount = tasks.filter((task) => task.completed).length;
-
-  const todayTasksCount = tasks.filter((task) => {
-    if (!task.deadline || task.completed) return false;
-    const today = new Date();
-    const taskDate = new Date(task.deadline);
-    return (
-      taskDate.getDate() === today.getDate() &&
-      taskDate.getMonth() === today.getMonth() &&
-      taskDate.getFullYear() === today.getFullYear()
-    );
-  }).length;
-
-  const weeklyTasksCount = tasks.filter((task) => {
-    if (!task.deadline || task.completed) return false;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const nextWeek = new Date(today);
-    nextWeek.setDate(nextWeek.getDate() + 7);
-    nextWeek.setHours(23, 59, 59, 999);
-    const taskDate = new Date(task.deadline);
-    return taskDate >= today && taskDate <= nextWeek;
-  }).length;
-
-  const getProjectCount = (projectId: string) => {
-    return tasks.filter(
-      (task) => task.projectId === projectId && !task.completed,
-    ).length;
-  };
-
-  const handleAddFolderSave = (name: string) => {
-    addFolder(name);
-  };
-
-  const handleDeleteFolder = (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
-    if (
-      window.confirm(
-        "Уверены, что хотите удалить эту папку? Задачи в ней останутся.",
-      )
-    ) {
-      deleteFolder(id);
-      if (activeFilter === id) setActiveFilter("all");
-    }
-  };
-
-  const handleFilterSelect = (filter: string) => {
-    setActiveFilter(filter);
-    setIsMobileOpen(false);
-  };
-
-  const defaultProjects = [
-    { id: "work", label: "Работа", color: "#3B82F6" },
-    { id: "home", label: "Дом", color: "#10B981" },
-    { id: "ideas", label: "Идеи", color: "#8B5CF6" },
-  ];
+  const {
+    isMobileOpen,
+    setIsMobileOpen,
+    isFolderModalOpen,
+    setIsFolderModalOpen,
+    isCalendarOpen,
+    setIsCalendarOpen,
+    tasks,
+    folders,
+    isAdding,
+    isTelegram,
+    logout,
+    allTasksCount,
+    importantTasksCount,
+    completedTasksCount,
+    todayTasksCount,
+    weeklyTasksCount,
+    getProjectCount,
+    handleAddFolderSave,
+    handleDeleteFolder,
+    handleFilterSelect,
+  } = useSidebar(activeFilter, setActiveFilter);
 
   return (
     <>
@@ -274,7 +156,7 @@ const Sidebar = ({
             </div>
 
             <div className="sidebar__projects-list">
-              {defaultProjects.map((project) => {
+              {DEFAULT_PROJECTS.map((project) => {
                 const count = getProjectCount(project.id);
                 return (
                   <button

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useRef } from "react";
 import {
   X,
   Calendar,
@@ -14,209 +14,21 @@ import {
   Save,
   Edit2,
   Bell,
-  ChevronDown,
 } from "lucide-react";
-import type { Task, TaskPayload, Priority, CheckListItem } from "@/api/types";
-import { useUpdateTask, useDeleteTask } from "@/hooks/useTasks";
+import type { Task, Priority } from "@/api/types";
+import ModalDropdown from "@/components/ModalDropdown";
+import CustomReminderModal from "@/components/CustomReminderModal";
+import { useTaskDetails } from "@/hooks/useTaskDetails";
+import { formatDateTime } from "@/utils/date";
+import {
+  getPriorityMeta,
+  getProjectLabel,
+  formatReminderLabel,
+  PROJECT_OPTIONS,
+  PRIORITY_OPTIONS,
+  REMINDER_OPTIONS,
+} from "@/utils/task";
 import "./TaskDetails.scss";
-
-const formatDateTime = (dateString: string | undefined | null) => {
-  if (!dateString) return "Нет";
-  const date = new Date(dateString);
-  return date.toLocaleString("ru-RU", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
-
-const formatDateOnly = (dateString: string | undefined | null) => {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
-
-const formatTimeOnly = (dateString: string | undefined | null) => {
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  const hours = String(date.getHours()).padStart(2, "0");
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  return `${hours}:${minutes}`;
-};
-
-const formatReminderLabel = (minutes: number) => {
-  if (minutes < 60) return `За ${minutes} мин.`;
-  if (minutes < 1440) return `За ${minutes / 60} ч.`;
-  return `За ${minutes / 1440} дн.`;
-};
-
-interface CustomReminderModalProps {
-  onClose: () => void;
-  onSave: (minutes: number) => void;
-}
-
-const CustomReminderModal = ({ onClose, onSave }: CustomReminderModalProps) => {
-  const [amount, setAmount] = useState<number | string>(10);
-  const [unit, setUnit] = useState<string>("minutes");
-
-  const handleConfirm = (e: React.FormEvent) => {
-    e.preventDefault();
-    const numAmount = Number(amount);
-    if (numAmount <= 0) return;
-
-    let minutes = numAmount;
-    if (unit === "hours") minutes = numAmount * 60;
-    if (unit === "days") minutes = numAmount * 1440;
-
-    onSave(minutes);
-    onClose();
-  };
-
-  const unitOptions = [
-    { value: "minutes", label: "Минут" },
-    { value: "hours", label: "Часов" },
-    { value: "days", label: "Дней" },
-  ];
-
-  return (
-    <div className="modal-overlay modal-overlay--nested" onClick={onClose}>
-      <div
-        className="modal-content modal-content--small"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <header className="modal-header compact-header">
-          <div className="compact-header-title">
-            <Bell size={18} className="header-icon" />
-            <h3>Точное напоминание</h3>
-          </div>
-          <button className="modal-close" onClick={onClose} type="button">
-            <X size={18} />
-          </button>
-        </header>
-        <form onSubmit={handleConfirm} className="modal-form">
-          <div
-            className="form-row"
-            style={{ gap: "10px", marginBottom: "20px" }}
-          >
-            <div className="form-group" style={{ flex: 1 }}>
-              <input
-                type="number"
-                className="form-input custom-number-input"
-                min="1"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                autoFocus
-              />
-            </div>
-            <div className="form-group" style={{ flex: 1.5 }}>
-              <ModalDropdown
-                icon={
-                  <Clock
-                    size={16}
-                    style={{ color: "var(--color-text-muted)" }}
-                  />
-                }
-                options={unitOptions}
-                value={unit}
-                onChange={setUnit}
-              />
-            </div>
-          </div>
-          <footer className="modal-footer">
-            <button
-              type="button"
-              className="btn btn--secondary"
-              onClick={onClose}
-            >
-              Отмена
-            </button>
-            <button type="submit" className="btn btn--primary">
-              Применить
-            </button>
-          </footer>
-        </form>
-      </div>
-    </div>
-  );
-};
-
-const ModalDropdown = ({ icon, value, options, onChange, disabled }: any) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const selectedOption = options.find((o: any) => o.value === value);
-
-  return (
-    <div
-      className={`modal-custom-select ${disabled ? "disabled" : ""}`}
-      ref={dropdownRef}
-    >
-      <select
-        className="modal-custom-select__native"
-        value={value}
-        onChange={(e) => {
-          if (disabled) return;
-          onChange(e.target.value);
-          setIsOpen(false);
-        }}
-        disabled={disabled}
-      >
-        {options.map((opt: any) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
-
-      <button
-        className={`modal-custom-select__toggle ${isOpen ? "active" : ""}`}
-        onClick={() => !disabled && setIsOpen(!isOpen)}
-        type="button"
-        disabled={disabled}
-      >
-        {icon}
-        <span>{selectedOption?.label || options[0]?.label}</span>
-        <ChevronDown size={16} className="icon-chevron" />
-      </button>
-
-      {isOpen && !disabled && (
-        <div className="modal-custom-select__menu">
-          {options.map((opt: any) => (
-            <button
-              key={opt.value}
-              type="button"
-              className={`modal-custom-select__item ${opt.value === value ? "selected" : ""}`}
-              onClick={() => {
-                onChange(opt.value);
-                setIsOpen(false);
-              }}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
 
 interface TaskDetailsProps {
   task: Task | null;
@@ -224,188 +36,35 @@ interface TaskDetailsProps {
 }
 
 const TaskDetails = ({ task, onClose }: TaskDetailsProps) => {
-  const updateTaskMutation = useUpdateTask();
-  const deleteTaskMutation = useDeleteTask();
+  const {
+    isEditing,
+    setIsEditing,
+    draft,
+    dateDraft,
+    setDateDraft,
+    timeDraft,
+    setTimeDraft,
+    remindersDraft,
+    isCustomReminderOpen,
+    setIsCustomReminderOpen,
+    newCheckLinkTitle,
+    setNewCheckLinkTitle,
+    currentData,
+    isSaving,
+    updateDraft,
+    handleAddReminder,
+    handleCustomReminderSave,
+    handleRemoveReminder,
+    handleSave,
+    handleCancel,
+    handleDeleteTask,
+    toggleCheckListItem,
+    addCheckListItem,
+    deleteCheckListItem,
+  } = useTaskDetails(task, onClose);
 
-  const [isEditing, setIsEditing] = useState(false);
-  const [draft, setDraft] = useState<TaskPayload | null>(null);
-
-  const [dateDraft, setDateDraft] = useState("");
-  const [timeDraft, setTimeDraft] = useState("");
-  const [remindersDraft, setRemindersDraft] = useState<number[]>([]);
-  const [isCustomReminderOpen, setIsCustomReminderOpen] = useState(false);
-
-  const [newCheckLinkTitle, setNewCheckLinkTitle] = useState("");
   const titleRef = useRef<HTMLTextAreaElement>(null);
-
   const isOpen = Boolean(task);
-
-  const reminderOptions = [
-    { value: "none", label: "Добавить напоминание..." },
-    { value: "5", label: "За 5 минут" },
-    { value: "15", label: "За 15 минут" },
-    { value: "30", label: "За 30 минут" },
-    { value: "60", label: "За 1 час" },
-    { value: "180", label: "За 3 часа" },
-    { value: "360", label: "За 6 часов" },
-    { value: "720", label: "За 12 часов" },
-    { value: "1440", label: "За 24 часа" },
-    { value: "4320", label: "За 3 дня" },
-    { value: "10080", label: "За 7 дней" },
-    { value: "custom", label: "Свой выбор..." },
-  ];
-
-  useEffect(() => {
-    if (task) {
-      setIsEditing(false);
-      setDraft({
-        title: task.title,
-        notes: task.notes || "",
-        priority: task.priority,
-        deadline: task.deadline,
-        projectId: task.projectId,
-        tags: task.tags || [],
-        checkList: task.checkList || [],
-        important: task.important || false,
-      });
-
-      setDateDraft(formatDateOnly(task.deadline));
-      setTimeDraft(formatTimeOnly(task.deadline));
-
-      const mappedReminders = task.reminders
-        ? task.reminders.map((r: any) => r.minutesBefore || r)
-        : [];
-      setRemindersDraft(mappedReminders);
-
-      setNewCheckLinkTitle("");
-    } else {
-      setDraft(null);
-      setIsEditing(false);
-    }
-  }, [task]);
-
-  const updateDraft = (updates: Partial<TaskPayload>) => {
-    setDraft((prev) => (prev ? { ...prev, ...updates } : null));
-  };
-
-  const handleAddReminder = (val: string) => {
-    if (val === "none") return;
-    if (val === "custom") {
-      setIsCustomReminderOpen(true);
-      return;
-    }
-    const minutes = Number(val);
-    if (!remindersDraft.includes(minutes)) {
-      setRemindersDraft([...remindersDraft, minutes].sort((a, b) => a - b));
-    }
-  };
-
-  const handleCustomReminderSave = (minutes: number) => {
-    if (!remindersDraft.includes(minutes)) {
-      setRemindersDraft([...remindersDraft, minutes].sort((a, b) => a - b));
-    }
-  };
-
-  const handleRemoveReminder = (minutes: number) => {
-    setRemindersDraft(remindersDraft.filter((m) => m !== minutes));
-  };
-
-  const handleSave = () => {
-    if (!draft || !task) return;
-
-    let formattedDeadline = "";
-    if (dateDraft) {
-      const time = timeDraft || "00:00";
-      formattedDeadline = new Date(`${dateDraft}T${time}`).toISOString();
-    }
-
-    const payload = {
-      ...draft,
-      deadline: formattedDeadline,
-      reminderMinutes: remindersDraft,
-    };
-
-    updateTaskMutation.mutate(
-      { id: task.id, updates: payload },
-      {
-        onSuccess: () => {
-          setIsEditing(false);
-        },
-      },
-    );
-  };
-
-  const handleCancel = () => {
-    if (!task) return;
-    setIsEditing(false);
-    setDraft({
-      title: task.title,
-      notes: task.notes || "",
-      priority: task.priority,
-      deadline: task.deadline,
-      projectId: task.projectId,
-      tags: task.tags || [],
-      checkList: task.checkList || [],
-      important: task.important || false,
-    });
-    setDateDraft(formatDateOnly(task.deadline));
-    setTimeDraft(formatTimeOnly(task.deadline));
-    const mappedReminders = task.reminders
-      ? task.reminders.map((r: any) => r.minutesBefore || r)
-      : [];
-    setRemindersDraft(mappedReminders);
-  };
-
-  const handleDeleteTask = () => {
-    if (task && window.confirm("Вы уверены, что хотите удалить эту задачу?")) {
-      deleteTaskMutation.mutate(task.id, {
-        onSuccess: () => onClose(),
-      });
-    }
-  };
-
-  const toggleCheckListItem = (itemId: string) => {
-    if (!isEditing || !draft) return;
-    const updatedList = (draft.checkList || []).map((item) =>
-      item.id === itemId ? { ...item, completed: !item.completed } : item,
-    );
-    updateDraft({ checkList: updatedList });
-  };
-
-  const addCheckListItem = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCheckLinkTitle.trim() || !draft) return;
-
-    const newItem: CheckListItem = {
-      id: Date.now().toString(),
-      title: newCheckLinkTitle.trim(),
-      completed: false,
-    };
-
-    updateDraft({ checkList: [...(draft.checkList || []), newItem] });
-    setNewCheckLinkTitle("");
-  };
-
-  const deleteCheckListItem = (itemId: string) => {
-    if (!draft) return;
-    const updatedList = (draft.checkList || []).filter(
-      (item) => item.id !== itemId,
-    );
-    updateDraft({ checkList: updatedList });
-  };
-
-  const getPriorityMeta = (p: Priority) => {
-    switch (p) {
-      case "high":
-        return { label: "Срочно", color: "var(--color-status-error)" };
-      case "medium":
-        return { label: "Средний", color: "var(--color-status-warning)" };
-      default:
-        return { label: "Низкий", color: "var(--color-status-success)" };
-    }
-  };
-
-  const currentData = isEditing ? draft : task;
 
   return (
     <>
@@ -442,7 +101,7 @@ const TaskDetails = ({ task, onClose }: TaskDetailsProps) => {
                   <button
                     className="task-details__btn-text task-details__btn-text--save"
                     onClick={handleSave}
-                    disabled={updateTaskMutation.isPending}
+                    disabled={isSaving}
                   >
                     <Save size={16} />
                     Сохранить
@@ -511,20 +170,14 @@ const TaskDetails = ({ task, onClose }: TaskDetailsProps) => {
                           }
                           className="task-meta-select"
                         >
-                          <option value="work">Работа</option>
-                          <option value="home">Дом</option>
-                          <option value="ideas">Идеи</option>
+                          {PROJECT_OPTIONS.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
                         </select>
                       ) : (
-                        <span>
-                          {task.projectId === "work"
-                            ? "Работа"
-                            : task.projectId === "home"
-                              ? "Дом"
-                              : task.projectId === "ideas"
-                                ? "Идеи"
-                                : "Входящие"}
-                        </span>
+                        <span>{getProjectLabel(task.projectId)}</span>
                       )}
                     </div>
                   </div>
@@ -595,9 +248,11 @@ const TaskDetails = ({ task, onClose }: TaskDetailsProps) => {
                           }
                           className="task-meta-select"
                         >
-                          <option value="low">Низкий</option>
-                          <option value="medium">Средний</option>
-                          <option value="high">Срочно</option>
+                          {PRIORITY_OPTIONS.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
                         </select>
                       ) : (
                         <span>{getPriorityMeta(task.priority).label}</span>
@@ -653,7 +308,7 @@ const TaskDetails = ({ task, onClose }: TaskDetailsProps) => {
                         style={{ color: "var(--color-text-muted)" }}
                       />
                     }
-                    options={reminderOptions}
+                    options={REMINDER_OPTIONS}
                     value={"none"}
                     onChange={handleAddReminder}
                     disabled={!dateDraft}

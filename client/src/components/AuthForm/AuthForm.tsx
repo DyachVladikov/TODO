@@ -1,45 +1,19 @@
-import { useState } from "react";
 import "./AuthForm.scss";
-import { useLogin, useRegistration } from "@/hooks/useApi";
-import { usePageTransition } from "@/context/TransitionContext";
+import { useAuthForm } from "@/hooks/useAuthForm";
 
 const AuthForm = () => {
-  const [isLogin, setIsLogin] = useState(true);
-  const [login, setLogin] = useState("");
-  const [password, setPassword] = useState("");
-  const { startTransition } = usePageTransition();
-
   const {
-    mutate: loginMutate,
-    isPending: loginPending,
-    error: loginError,
-  } = useLogin();
-  const {
-    mutate: registerMutate,
-    isPending: registerPending,
-    error: registerError,
-  } = useRegistration();
+    isLogin,
+    login,
+    setLogin,
+    password,
+    setPassword,
+    isPending,
+    error,
+    handleSubmit,
+    handleSwitch,
+  } = useAuthForm();
 
-  const isPending = loginPending || registerPending;
-  const error = loginError || registerError;
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const payload = { login, password };
-    const onSuccess = () => startTransition("/home");
-
-    if (isLogin) {
-      loginMutate(payload, { onSuccess });
-    } else {
-      registerMutate(payload, { onSuccess });
-    }
-  };
-
-  const handleSwitch = () => {
-    setIsLogin(!isLogin);
-    setLogin("");
-    setPassword("");
-  };
   return (
     <>
       <div className="auth-form">
